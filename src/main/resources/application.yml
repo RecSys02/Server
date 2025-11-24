@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: develop
+
+  # --------------------------------------------------------------------
+  # 아래는 DB 설정 예시
+  # 필요하면 주석 제거 후 값만 채워넣으면 바로 작동함
+  # --------------------------------------------------------------------
+  datasource:
+    url: jdbc:postgresql://localhost:5432/temp   # database 이름  *반드시 수정*
+    username: postgres                            # 실제 계정  *반드시 수정*
+    password: a1234567890                         # 실제 비밀번호  *반드시 수정*
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
