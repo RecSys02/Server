@@ -14,13 +14,14 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 public class UserTag {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="user_tag_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user")
+    @JoinColumn(name = "user_id")
     private User user;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tag")
+    @JoinColumn(name = "tag_id")
     private Tag tag;
 
 }
