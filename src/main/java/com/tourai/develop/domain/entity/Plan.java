@@ -40,6 +40,10 @@ public class Plan {
     @Builder.Default
     private Map<Integer, Map<String, String>> schedule = new HashMap<>();
 
+
+    @Column(name = "name", nullable = false, length = 100)
+    private String name;
+
     @Column(name = "is_private")
     private boolean isPrivate;
 
