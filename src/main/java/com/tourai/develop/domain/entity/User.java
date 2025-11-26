@@ -16,13 +16,15 @@ import java.util.List;
 @Builder
 @Entity
 @EntityListeners(AuditingEntityListener.class)
+@Table(name="users")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="user_id")
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String userId;
+    private String email;
 
     @Column(nullable = false, unique = true)
     private String password;
