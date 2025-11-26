@@ -14,7 +14,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 public class UserTag {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="user_tag_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

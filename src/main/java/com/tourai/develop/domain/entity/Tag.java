@@ -15,11 +15,10 @@ public class Tag {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="tag_id")
     private Long id;
 
     @Column(nullable = false)
-    private int tag_info;
+    private int tag_id;
 
     @Enumerated(EnumType.STRING)
     private Category category;
