@@ -7,6 +7,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -38,7 +39,8 @@ public class Place {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "picture", columnDefinition = "jsonb")
-    private List<String> picture;
+    @Builder.Default
+    private List<String> picture=new ArrayList<>();
 
     @Column(name = "longitude")
     private Double longitude;

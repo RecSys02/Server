@@ -29,6 +29,7 @@ public class User {
     private String password;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @Builder.Default
     private List<UserTag> userTags = new ArrayList<>();
 
     @CreatedDate

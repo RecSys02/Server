@@ -17,9 +17,6 @@ public class Tag {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private int tag_id;
-
     @Enumerated(EnumType.STRING)
     private Category category;
 

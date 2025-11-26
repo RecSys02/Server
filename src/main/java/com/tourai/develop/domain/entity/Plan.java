@@ -4,10 +4,14 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -27,10 +31,22 @@ public class Plan {
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;
 
+    @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<PlanTag> planTags = new ArrayList<>();
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "schedule", columnDefinition = "jsonb")
-    private Map<Integer, Map<String, String>> schedule;
+    @Builder.Default
+    private Map<Integer, Map<String, String>> schedule = new HashMap<>();
 
+    @Column(name = "is_private")
+    private boolean isPrivate;
+
+    @Column(name = "like_count")
+    private Long like;
+
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
