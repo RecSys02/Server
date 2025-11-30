@@ -35,7 +35,7 @@ public class User {
     @Builder.Default
     private List<UserTag> userTags = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Plan> plans = new ArrayList<>();
 
@@ -48,4 +48,12 @@ public class User {
 
     private LocalDateTime lastLogin;
 
+
+    public void addTag(Tag tag) {
+        UserTag userTag = UserTag.builder()
+                .user(this)
+                .tag(tag)
+                .build();
+        this.userTags.add(userTag);
+    }
 }
