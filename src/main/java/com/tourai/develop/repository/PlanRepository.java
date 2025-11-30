@@ -1,14 +1,8 @@
 package com.tourai.develop.repository;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
+import com.tourai.develop.domain.entity.Plan;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-@Repository
-@RequiredArgsConstructor
-public class PlanRepository {
+public interface PlanRepository extends JpaRepository<Plan, Long> {
 
-    @PersistenceContext
-    private final EntityManager em;
 }
