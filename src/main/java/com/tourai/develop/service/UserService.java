@@ -9,5 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class UserService {
+    // 회원정보 관리 메서드 구현
     private final UserRepository userRepository;
+
+
+
 }
