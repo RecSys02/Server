@@ -3,8 +3,15 @@ package com.tourai.develop.repository;
 import com.tourai.develop.domain.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface UserRepository extends JpaRepository<User, Long> {
+import java.util.Optional;
 
+public interface UserRepository extends JpaRepository<User, Long>, UserCustomRepository {
+
+    boolean existsByEmail(String email);
+
+    boolean existsByUserName(String userName);
+
+    Optional<User> findByEmail(String email);
 
 
 }
