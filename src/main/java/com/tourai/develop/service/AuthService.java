@@ -5,16 +5,16 @@ import com.tourai.develop.domain.entity.User;
 import com.tourai.develop.dto.SignUpDto;
 import com.tourai.develop.repository.TagRepository;
 import com.tourai.develop.repository.UserRepository;
+import com.tourai.develop.validation.PasswordValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class AuthService {
+public class AuthService extends PasswordValidator {
     // 로그인, 회원가입 관련 메서드 구현
 
     private final UserRepository userRepository;
@@ -22,7 +22,7 @@ public class AuthService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Transactional
-    public void singUp(SignUpDto signUpDto) {
+    public void signUp(SignUpDto signUpDto) {
 
         //이메일 중복 확인
         if (userRepository.existsByEmail(signUpDto.getEmail())) {
@@ -55,19 +55,7 @@ public class AuthService {
 
     }
 
-    private void validatePassword(String password) {
 
-        if (password == null || password.length() < 8) {
-            throw new IllegalArgumentException("비밀번호는 8자 이상이어 합니다!");
-        }
-
-        boolean isHasLetter = password.chars().anyMatch(Character::isLetter);
-        boolean isHasDigit = password.chars().anyMatch(Character::isDigit);
-
-        if (!isHasLetter || !isHasDigit) {
-            throw new IllegalArgumentException("비밀번호는 영문과 숫자를 모두 포함해야 합니다!");
-        }
-    }
 
 
 }

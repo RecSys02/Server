@@ -6,11 +6,9 @@ import com.tourai.develop.domain.enumType.Category;
 import com.tourai.develop.dto.SignUpDto;
 import com.tourai.develop.repository.TagRepository;
 import com.tourai.develop.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -31,7 +29,7 @@ class AuthServiceTest {
 
 
     @Test
-    public void singUp() {
+    public void signUp() {
 
         Tag tag1 = Tag.builder()
                 .category(Category.cafe)
@@ -55,7 +53,7 @@ class AuthServiceTest {
                 .build();
 
 
-        authService.singUp(signUpDto);
+        authService.signUp(signUpDto);
 
         User savedUser = userRepository.findByEmail(signUpDto.getEmail()).orElseThrow(() -> new IllegalArgumentException("해당 email을 가진 user가 존재하지 않습니다!"));
         assertEquals(signUpDto.getUserName(), savedUser.getUserName());
