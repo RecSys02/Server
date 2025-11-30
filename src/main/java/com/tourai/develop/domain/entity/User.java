@@ -16,7 +16,7 @@ import java.util.List;
 @Builder
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name="users")
+@Table(name = "users")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,6 +31,10 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @Builder.Default
     private List<UserTag> userTags = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    @Builder.Default
+    private List<Plan> plans = new ArrayList<>();
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
