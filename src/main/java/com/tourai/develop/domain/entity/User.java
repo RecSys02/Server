@@ -5,6 +5,7 @@ import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -31,11 +32,11 @@ public class User {
     @Column(nullable = false, unique = true)
     private String password;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<UserTag> userTags = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Plan> plans = new ArrayList<>();
 
@@ -56,4 +57,22 @@ public class User {
                 .build();
         this.userTags.add(userTag);
     }
+
+    public void changeUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public void changeEmail(String email) {
+        this.email = email;
+    }
+
+    public void changePassword(String rawPassword, PasswordEncoder passwordEncoder) {
+        String encodedPassword = passwordEncoder.encode(rawPassword);
+        this.password = encodedPassword;
+    }
+
+    public void clearTags() {
+        this.userTags.clear();
+    }
+
 }
