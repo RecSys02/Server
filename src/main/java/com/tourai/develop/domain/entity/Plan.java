@@ -48,7 +48,12 @@ public class Plan {
     private boolean isPrivate;
 
     @Column(name = "like_count")
-    private Long like;
+    @Builder.Default
+    private Long like = 0L;
+
+    public void updatePrivateStatus(boolean isPrivate) {
+        this.isPrivate = isPrivate;
+    }
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
