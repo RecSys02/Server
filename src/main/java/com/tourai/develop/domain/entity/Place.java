@@ -40,12 +40,21 @@ public class Place {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "picture", columnDefinition = "jsonb")
     @Builder.Default
-    private List<String> picture=new ArrayList<>();
+    private List<String> picture = new ArrayList<>();
 
     @Column(name = "longitude")
     private Double longitude;
 
     @Column(name = "latitude")
     private Double latitude;
+
+    public void update(Region placeRegion, String name, String description, List<String> picture, Double latitude, Double longitude) {
+        this.placeRegion = placeRegion;
+        this.name = name;
+        this.description = description;
+        this.picture = picture;
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
 
 }
