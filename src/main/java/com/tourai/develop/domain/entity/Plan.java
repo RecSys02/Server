@@ -51,10 +51,6 @@ public class Plan {
     @Builder.Default
     private Long like = 0L;
 
-    public void updatePrivateStatus(boolean isPrivate) {
-        this.isPrivate = isPrivate;
-    }
-
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -63,4 +59,18 @@ public class Plan {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+
+    public void updatePrivateStatus(boolean isPrivate) {
+        this.isPrivate = isPrivate;
+    }
+
+    public void increaseLikeCount() {
+        this.like = (this.like == null) ? 1 : this.like + 1;
+    }
+
+    public void decreaseLikeCount() {
+        if (this.like != null && this.like > 0) {
+            this.like--;
+        }
+    }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tourai.develop.domain.entity.Place;
 import com.tourai.develop.domain.entity.Plan;
+import com.tourai.develop.domain.entity.PlanLike;
 import com.tourai.develop.domain.entity.User;
 import com.tourai.develop.dto.request.PlanRequestDto;
 import com.tourai.develop.repository.PlaceRepository;
@@ -16,12 +17,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class PlanService {
     private final PlanRepository planRepository;
+    private final PlanLikeRepository planLikeRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final PlaceRepository placeRepository;
@@ -69,4 +72,28 @@ public class PlanService {
 
     }
 
+    @Transactional
+    public void togglePlanLike(Long planId, Long userId) {
+        Plan plan = planRepository.findById(planId)
+                .orElseThrow(() -> new IllegalArgumentException("Plan not found: " + planId));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+
+        Optional<PlanLike> existingLike = planLikeRepository.findByUserAndPlan(user, plan);
+
+        // TODO: like를 따로 올리지 않고 해당 테이블의 데이터 수와 동기화되도록 해야할 듯
+        if (existingLike.isPresent()) {
+            // 이미 좋아요를 눌렀다면 -> 취소(삭제) + likeCount 감소
+            planLikeRepository.delete(existingLike.get());
+            plan.decreaseLikeCount();
+        } else {
+            // 좋아요 안 눌렀다면 -> 추가 + likeCount 증가
+            PlanLike newLike = PlanLike.builder()
+                    .user(user)
+                    .plan(plan)
+                    .build();
+            planLikeRepository.save(newLike);
+            plan.increaseLikeCount();
+        }
+    }
 }
