@@ -10,4 +10,5 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PlanService {
     private final PlanRepository planRepository;
+
 }
