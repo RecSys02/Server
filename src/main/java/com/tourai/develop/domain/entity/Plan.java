@@ -1,5 +1,6 @@
 package com.tourai.develop.domain.entity;
 
+import com.tourai.develop.dto.PlaceItem;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -38,14 +39,14 @@ public class Plan {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "schedule", columnDefinition = "jsonb")
     @Builder.Default
-    private Map<Integer, Map<String, String>> schedule = new HashMap<>();
+    private Map<String, List<PlaceItem>> schedule = new HashMap<>();
 
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
     @Column(name = "is_private")
-    private boolean isPrivate;
+    private Boolean isPrivate;
 
     @Column(name = "like_count")
     @Builder.Default

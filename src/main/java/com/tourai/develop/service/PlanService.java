@@ -1,13 +1,10 @@
 package com.tourai.develop.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tourai.develop.domain.entity.Place;
 import com.tourai.develop.domain.entity.Plan;
 import com.tourai.develop.domain.entity.PlanLike;
 import com.tourai.develop.domain.entity.User;
+import com.tourai.develop.dto.PlaceItem;
 import com.tourai.develop.dto.request.PlanRequestDto;
-import com.tourai.develop.repository.PlaceRepository;
 import com.tourai.develop.repository.PlanLikeRepository;
 import com.tourai.develop.repository.PlanRepository;
 import com.tourai.develop.repository.UserRepository;
@@ -26,32 +23,22 @@ public class PlanService {
     private final PlanRepository planRepository;
     private final PlanLikeRepository planLikeRepository;
     private final UserRepository userRepository;
-    private final ObjectMapper objectMapper;
-    private final PlaceRepository placeRepository;
+
+    private final PlanAiService planAiService;
 
     @Transactional
     public void savePlan(PlanRequestDto planRequestDto) {
         User findUser = userRepository.findById(planRequestDto.userId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 userId 입니다!"));
 
-        // TODO: Places로 Prompt 만들어야 함
-        List<Place> places = placeRepository.findAllByPlaceIdIn(planRequestDto.placeIds());
+        Map<String, List<PlaceItem>> schedule = planAiService.createSchedule(planRequestDto.placeIds(), planRequestDto.duration());
 
-        // TODO: LLM API 호출을 통해 JSON을 받아와야 함
-        String jsonString = "{}"; // 임시 더미 데이터
-
-        Map<Integer, Map<String, String>> scheduleMap;
-        try {
-            scheduleMap = objectMapper.readValue(jsonString, new TypeReference<Map<Integer, Map<String, String>>>() {});
-        } catch (Exception e) {
-            throw new RuntimeException("JSON 파싱 오류", e);
-        }
-
+        // TODO: tags 처리 필요. Test 추가 필요
         Plan plan = Plan.builder()
                 .user(findUser)
                 .name(planRequestDto.name())
                 .isPrivate(planRequestDto.isPrivate())
-                .schedule(scheduleMap)
+                .schedule(schedule)
                 .build();
         
         planRepository.save(plan);
