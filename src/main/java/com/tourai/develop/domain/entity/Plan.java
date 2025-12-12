@@ -74,4 +74,8 @@ public class Plan {
             this.like--;
         }
     }
+
+    public void addPlanTag(PlanTag planTag) {
+        this.planTags.add(planTag);
+    }
 }

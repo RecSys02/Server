@@ -1,12 +1,11 @@
 package com.tourai.develop.service;
 
-import com.tourai.develop.domain.entity.Plan;
-import com.tourai.develop.domain.entity.PlanLike;
-import com.tourai.develop.domain.entity.User;
+import com.tourai.develop.domain.entity.*;
 import com.tourai.develop.dto.PlaceItem;
 import com.tourai.develop.dto.request.PlanRequestDto;
 import com.tourai.develop.repository.PlanLikeRepository;
 import com.tourai.develop.repository.PlanRepository;
+import com.tourai.develop.repository.TagRepository;
 import com.tourai.develop.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +22,7 @@ public class PlanService {
     private final PlanRepository planRepository;
     private final PlanLikeRepository planLikeRepository;
     private final UserRepository userRepository;
+    private final TagRepository tagRepository;
 
     private final PlanAiService planAiService;
 
@@ -31,16 +31,28 @@ public class PlanService {
         User findUser = userRepository.findById(planRequestDto.userId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 userId 입니다!"));
 
+        // 스케줄 생성
         Map<String, List<PlaceItem>> schedule = planAiService.createSchedule(planRequestDto.placeIds(), planRequestDto.duration());
 
-        // TODO: tags 처리 필요. Test 추가 필요
+        // plan 생성
         Plan plan = Plan.builder()
                 .user(findUser)
                 .name(planRequestDto.name())
                 .isPrivate(planRequestDto.isPrivate())
                 .schedule(schedule)
                 .build();
-        
+
+        // plan에 tags 추가
+        List<Tag> tags = tagRepository.findAllById(planRequestDto.tagIds());
+
+        for (Tag tag : tags) {
+            PlanTag planTag = PlanTag.builder()
+                    .plan(plan)
+                    .tag(tag)
+                    .build();
+            plan.addPlanTag(planTag);
+        }
+
         planRepository.save(plan);
     }
 

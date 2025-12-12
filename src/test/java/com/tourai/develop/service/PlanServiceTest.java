@@ -2,12 +2,15 @@ package com.tourai.develop.service;
 
 import com.tourai.develop.domain.entity.Place;
 import com.tourai.develop.domain.entity.Plan;
+import com.tourai.develop.domain.entity.Tag;
 import com.tourai.develop.domain.entity.User;
+import com.tourai.develop.domain.enumType.Category;
 import com.tourai.develop.domain.enumType.Region;
 import com.tourai.develop.dto.PlaceItem;
 import com.tourai.develop.dto.request.PlanRequestDto;
 import com.tourai.develop.repository.PlaceRepository;
 import com.tourai.develop.repository.PlanRepository;
+import com.tourai.develop.repository.TagRepository;
 import com.tourai.develop.repository.UserRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -28,6 +31,7 @@ public class PlanServiceTest {
     @Autowired PlanRepository planRepository;
     @Autowired PlanService planService;
     @Autowired UserRepository userRepository;
+    @Autowired TagRepository tagRepository;
 
     @Test
     void promptTest() {
@@ -158,12 +162,25 @@ public class PlanServiceTest {
         placeRepository.save(place2);
         List<Long> placeIds = Arrays.asList(1L, 2L);
 
+        // Tags
+        Tag tag1 = Tag.builder()
+                .name("Tag1")
+                .category(Category.cafe)
+                .build();
+        Tag tag2 = Tag.builder()
+                .name("Tag2")
+                .category(Category.restaurant)
+                .build();
+        tagRepository.saveAll(List.of(tag1, tag2));
+        List<Long> tagIds = List.of(tag1.getId(), tag2.getId());
+
         // Plan
         PlanRequestDto dto = PlanRequestDto.builder()
                 .userId(user.getId())
                 .name("Plan1")
                 .duration(1)
                 .placeIds(placeIds)
+                .tagIds(tagIds)
                 .isPrivate(true)
                 .build();
 
@@ -177,5 +194,10 @@ public class PlanServiceTest {
 
         Assertions.assertThat(savedPlan.getName()).isEqualTo("Plan1");
         Assertions.assertThat(savedPlan.getSchedule()).isNotNull();
+        Assertions.assertThat(savedPlan.getPlanTags()).hasSize(2);
+        List<String> savedTagNames = savedPlan.getPlanTags().stream()
+                .map(pt -> pt.getTag().getName())
+                .toList();
+        Assertions.assertThat(savedTagNames).contains("Tag1", "Tag2");
     }
 }
