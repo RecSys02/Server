@@ -9,6 +9,7 @@ import com.tourai.develop.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-//@Rollback(value = false)  //db 확인 가능 용도
+@Rollback(value = false)  //db 확인 가능 용도
 @Transactional
 class AuthServiceTest {
 
@@ -59,6 +60,8 @@ class AuthServiceTest {
         assertEquals(signUpDto.getUserName(), savedUser.getUserName());
         assertEquals(2, savedUser.getUserTags().size());
     }
+
+
 
 
 }
