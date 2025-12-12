@@ -80,19 +80,16 @@ public class PlanService {
 
         Optional<PlanLike> existingLike = planLikeRepository.findByUserAndPlan(user, plan);
 
-        // TODO: like를 따로 올리지 않고 해당 테이블의 데이터 수와 동기화되도록 해야할 듯
         if (existingLike.isPresent()) {
-            // 이미 좋아요를 눌렀다면 -> 취소(삭제) + likeCount 감소
+            // 이미 좋아요를 눌렀다면 -> 취소(삭제)
             planLikeRepository.delete(existingLike.get());
-            plan.decreaseLikeCount();
         } else {
-            // 좋아요 안 눌렀다면 -> 추가 + likeCount 증가
+            // 좋아요 안 눌렀다면 -> 추가
             PlanLike newLike = PlanLike.builder()
                     .user(user)
                     .plan(plan)
                     .build();
             planLikeRepository.save(newLike);
-            plan.increaseLikeCount();
         }
     }
 }

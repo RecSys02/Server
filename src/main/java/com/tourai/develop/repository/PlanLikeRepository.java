@@ -9,5 +9,5 @@ import java.util.Optional;
 
 public interface PlanLikeRepository extends JpaRepository<PlanLike, Long> {
     Optional<PlanLike> findByUserAndPlan(User user, Plan plan);
-
+    long countByPlan(Plan plan);
 }

@@ -3,6 +3,7 @@ package com.tourai.develop.domain.entity;
 import com.tourai.develop.dto.PlaceItem;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
@@ -48,9 +49,8 @@ public class Plan {
     @Column(name = "is_private")
     private Boolean isPrivate;
 
-    @Column(name = "like_count")
-    @Builder.Default
-    private Long like = 0L;
+    @Formula("(select count(*) from plan_like pl where pl.plan_id = id)")
+    private int likeCount;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -63,16 +63,6 @@ public class Plan {
 
     public void updatePrivateStatus(boolean isPrivate) {
         this.isPrivate = isPrivate;
-    }
-
-    public void increaseLikeCount() {
-        this.like = (this.like == null) ? 1 : this.like + 1;
-    }
-
-    public void decreaseLikeCount() {
-        if (this.like != null && this.like > 0) {
-            this.like--;
-        }
     }
 
     public void addPlanTag(PlanTag planTag) {

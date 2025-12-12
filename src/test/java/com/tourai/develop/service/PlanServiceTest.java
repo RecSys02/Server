@@ -12,6 +12,7 @@ import com.tourai.develop.repository.PlaceRepository;
 import com.tourai.develop.repository.PlanRepository;
 import com.tourai.develop.repository.TagRepository;
 import com.tourai.develop.repository.UserRepository;
+import jakarta.persistence.EntityManager;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,48 @@ public class PlanServiceTest {
     @Autowired PlanService planService;
     @Autowired UserRepository userRepository;
     @Autowired TagRepository tagRepository;
+    @Autowired EntityManager em;
+
+    @Test
+    void togglePlanLikeTest() {
+        // User 생성
+        User user = User.builder()
+                .userName("TestUser")
+                .email("test@example.com")
+                .password("password")
+                .build();
+        userRepository.save(user);
+
+        // Plan 생성
+        Plan plan = Plan.builder()
+                .user(user)
+                .name("Test Plan")
+                .isPrivate(false)
+                .build();
+        planRepository.save(plan);
+
+        // 영속성 컨텍스트 초기화 (데이터베이스 반영 확인을 위해)
+        em.flush();
+        em.clear();
+
+        // 1. 좋아요 추가
+        planService.togglePlanLike(plan.getId(), user.getId());
+
+        em.flush();
+        em.clear();
+
+        Plan likedPlan = planRepository.findById(plan.getId()).orElseThrow();
+        Assertions.assertThat(likedPlan.getLikeCount()).isEqualTo(1);
+
+        // 2. 좋아요 취소
+        planService.togglePlanLike(plan.getId(), user.getId());
+
+        em.flush();
+        em.clear();
+
+        Plan unlikedPlan = planRepository.findById(plan.getId()).orElseThrow();
+        Assertions.assertThat(unlikedPlan.getLikeCount()).isEqualTo(0);
+    }
 
     @Test
     void promptTest() {
