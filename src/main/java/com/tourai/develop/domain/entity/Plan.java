@@ -1,7 +1,9 @@
 package com.tourai.develop.domain.entity;
 
+import com.tourai.develop.dto.PlaceItem;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
@@ -38,17 +40,17 @@ public class Plan {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "schedule", columnDefinition = "jsonb")
     @Builder.Default
-    private Map<Integer, Map<String, String>> schedule = new HashMap<>();
+    private Map<String, List<PlaceItem>> schedule = new HashMap<>();
 
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
     @Column(name = "is_private")
-    private boolean isPrivate;
+    private Boolean isPrivate;
 
-    @Column(name = "like_count")
-    private Long like;
+    @Formula("(select count(*) from plan_like pl where pl.plan_id = id)")
+    private int likeCount;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -58,4 +60,12 @@ public class Plan {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+
+    public void updatePrivateStatus(boolean isPrivate) {
+        this.isPrivate = isPrivate;
+    }
+
+    public void addPlanTag(PlanTag planTag) {
+        this.planTags.add(planTag);
+    }
 }
