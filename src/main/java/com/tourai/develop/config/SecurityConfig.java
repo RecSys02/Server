@@ -22,7 +22,7 @@ public class SecurityConfig {
 
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JwtUtil jwtUtil;
-    private final RefreshTokenUtil refreshTokenUtil;
+    private final RefreshTokenService refreshTokenService;
     private final RedisLogoutHandler redisLogoutHandler;
 
     @Bean
@@ -56,7 +56,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated());
 
 
-        LoginFilter loginFilter = new LoginFilter(authenticationManager, jwtUtil, refreshTokenUtil);
+        LoginFilter loginFilter = new LoginFilter(authenticationManager, jwtUtil, refreshTokenService);
         loginFilter.setFilterProcessesUrl("/login");
 
         httpSecurity

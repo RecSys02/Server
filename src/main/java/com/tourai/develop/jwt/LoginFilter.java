@@ -5,7 +5,6 @@ import com.tourai.develop.dto.CustomUserDetails;
 import com.tourai.develop.dto.LoginDto;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -29,12 +28,12 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
 
-    private final RefreshTokenUtil refreshTokenUtil;
+    private final RefreshTokenService refreshTokenService;
 
-    public LoginFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil, RefreshTokenUtil refreshTokenUtil) {
+    public LoginFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil, RefreshTokenService refreshTokenService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
-        this.refreshTokenUtil = refreshTokenUtil;
+        this.refreshTokenService = refreshTokenService;
     }
 
 
@@ -74,7 +73,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String accessToken = jwtUtil.createJwt("access", username, role, accessTokenExpiredMs);
         String refreshToken = jwtUtil.createJwt("refresh", username, role, refreshTokenExpiredMs);
 
-        refreshTokenUtil.save(username, refreshToken, Duration.ofMillis(refreshTokenExpiredMs));
+        refreshTokenService.save(username, refreshToken, Duration.ofMillis(refreshTokenExpiredMs));
 
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("application/json");

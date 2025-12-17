@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 public class RedisLogoutHandler implements LogoutHandler {
 
     private final JwtUtil jwtUtil;
-    private final RefreshTokenUtil refreshTokenUtil;
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
@@ -28,8 +28,8 @@ public class RedisLogoutHandler implements LogoutHandler {
 
                 String email = jwtUtil.getUsername(refreshToken);
 
-                if (refreshTokenUtil.isMatch(email, refreshToken)) {
-                    refreshTokenUtil.delete(email);
+                if (refreshTokenService.isMatch(email, refreshToken)) {
+                    refreshTokenService.delete(email);
                 }
 
             }
