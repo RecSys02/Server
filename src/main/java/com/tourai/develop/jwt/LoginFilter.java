@@ -5,23 +5,23 @@ import com.tourai.develop.dto.CustomUserDetails;
 import com.tourai.develop.dto.LoginDto;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Map;
 
 @Slf4j
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
@@ -29,10 +29,14 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
 
-    public LoginFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
+    private final RefreshTokenUtil refreshTokenUtil;
+
+    public LoginFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil, RefreshTokenUtil refreshTokenUtil) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
+        this.refreshTokenUtil = refreshTokenUtil;
     }
+
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
@@ -64,9 +68,21 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         String role = auth.getAuthority();
 
+        Long accessTokenExpiredMs = 60 * 60 * 10L;
+        Long refreshTokenExpiredMs = 864 * 100000L;
 
-        String jwtToken = jwtUtil.createJwt(username, role, 60 * 60 * 10L);
-        response.addHeader("Authorization", "Bearer " + jwtToken);
+        String accessToken = jwtUtil.createJwt("access", username, role, accessTokenExpiredMs);
+        String refreshToken = jwtUtil.createJwt("refresh", username, role, refreshTokenExpiredMs);
+
+        refreshTokenUtil.save(username, refreshToken, Duration.ofMillis(refreshTokenExpiredMs));
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        response.addCookie(jwtUtil.createCookie("refresh", refreshToken, refreshTokenExpiredMs));
+        new ObjectMapper().writeValue(response.getWriter(), Map.of("accessToken", accessToken));
+
     }
 
     @Override
@@ -75,4 +91,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         response.setStatus(401);
     }
+
+
 }
