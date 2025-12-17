@@ -14,10 +14,13 @@ import java.util.Date;
 public class JwtUtil {
 
     private SecretKey secretKey;
+    private CookieUtil cookieUtil;
 
 
-    public JwtUtil(@Value("${spring.jwt.secret}") String secret) {
+    public JwtUtil(@Value("${spring.jwt.secret}") String secret,
+                   CookieUtil cookieUtil) {
         this.secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
+        this.cookieUtil = cookieUtil;
     }
 
     public String createJwt(String tokenType, String username, String role, Long expiredMs) {
@@ -54,18 +57,10 @@ public class JwtUtil {
     }
 
     public Cookie createCookie(String key, String value, Long expiredMs) {
-        Cookie cookie = new Cookie(key, value);
-        cookie.setPath("/");
-        cookie.setMaxAge((int) (expiredMs / 1000));
-        cookie.setHttpOnly(true);
-        return cookie;
+        return cookieUtil.createCookie(key, value, expiredMs);
     }
 
     public Cookie deleteCookie(String cookieName) {
-        Cookie cookie = new Cookie(cookieName, null);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        cookie.setHttpOnly(true);
-        return cookie;
+        return cookieUtil.deleteCookie(cookieName);
     }
 }
