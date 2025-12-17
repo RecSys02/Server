@@ -2,24 +2,40 @@ package com.tourai.develop.service;
 
 import com.tourai.develop.domain.entity.Tag;
 import com.tourai.develop.domain.entity.User;
+import com.tourai.develop.dto.ReissueDto;
 import com.tourai.develop.dto.SignUpDto;
+import com.tourai.develop.exception.InvalidRefreshTokenTypeException;
+import com.tourai.develop.exception.RefreshTokenExpiredException;
+import com.tourai.develop.exception.RefreshTokenMismatchException;
+import com.tourai.develop.exception.RefreshTokenNullException;
+import com.tourai.develop.jwt.JwtUtil;
+import com.tourai.develop.jwt.RefreshTokenService;
 import com.tourai.develop.repository.TagRepository;
 import com.tourai.develop.repository.UserRepository;
 import com.tourai.develop.validation.PasswordValidator;
+import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class AuthService extends PasswordValidator {
+public class AuthService {
     // 로그인, 회원가입 관련 메서드 구현
 
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final PasswordValidator passwordValidator;
+    private final RefreshTokenService refreshTokenService;
+    private final JwtUtil jwtUtil;
+    public final static Long accessTokenExpiredMs = 60 * 60 * 10L;
+    public final static Long refreshTokenExpiredMs = 864 * 100000L;
 
     @Transactional
     public void signUp(SignUpDto signUpDto) {
@@ -33,7 +49,7 @@ public class AuthService extends PasswordValidator {
         if (userRepository.existsByUserName(signUpDto.getUserName())) {
             throw new IllegalArgumentException("이미 사용중인 닉네임 입니다!");
         }
-        validatePassword(signUpDto.getPassword());
+        passwordValidator.validatePassword(signUpDto.getPassword());
 
         String encodedPassword = bCryptPasswordEncoder.encode(signUpDto.getPassword());
 
@@ -55,7 +71,52 @@ public class AuthService extends PasswordValidator {
 
     }
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public ReissueDto validateAndReissueToken(String refreshToken) {
 
+        String username = validateRefreshTokenAndGetUsername(refreshToken);
+        validateRefreshTokenMatchesRedis(refreshToken, username);
+        String role = jwtUtil.getRole(refreshToken);
+
+        String newAccessToken = jwtUtil.createJwt("access", username, role, accessTokenExpiredMs);
+        String newRefreshToken = jwtUtil.createJwt("refresh", username, role, refreshTokenExpiredMs);
+
+
+        refreshTokenService.delete(username);
+        refreshTokenService.save(username, newRefreshToken, Duration.ofMillis(refreshTokenExpiredMs));
+
+
+        return ReissueDto.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
+                .build();
+
+    }
+
+
+    private String validateRefreshTokenAndGetUsername(String refreshToken) {
+        if (refreshToken == null) {
+            throw new RefreshTokenNullException("refresh token is null");
+        }
+
+        if (jwtUtil.isExpired(refreshToken)) {
+            throw new RefreshTokenExpiredException("refresh token expired");
+        }
+
+
+        if (!(jwtUtil.getTokenType(refreshToken)).equals("refresh")) {
+            throw new InvalidRefreshTokenTypeException("token type is not refresh");
+        }
+
+        return jwtUtil.getUsername(refreshToken);
+
+    }
+
+    private void validateRefreshTokenMatchesRedis(String refreshToken, String email) {
+        if (!refreshTokenService.isMatch(email, refreshToken)) {
+            throw new RefreshTokenMismatchException("refresh token mismatch at redis");
+        }
+    }
 
 
 }
