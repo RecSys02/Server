@@ -1,9 +1,8 @@
 package com.tourai.develop.config;
 
-import com.tourai.develop.jwt.JwtFilter;
-import com.tourai.develop.jwt.JwtUtil;
-import com.tourai.develop.jwt.LoginFilter;
+import com.tourai.develop.jwt.*;
 import com.tourai.develop.service.CustomUserDetailsService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +22,8 @@ public class SecurityConfig {
 
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JwtUtil jwtUtil;
+    private final RefreshTokenUtil refreshTokenUtil;
+    private final RedisLogoutHandler redisLogoutHandler;
 
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
@@ -55,7 +56,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated());
 
 
-        LoginFilter loginFilter = new LoginFilter(authenticationManager, jwtUtil);
+        LoginFilter loginFilter = new LoginFilter(authenticationManager, jwtUtil, refreshTokenUtil);
         loginFilter.setFilterProcessesUrl("/login");
 
         httpSecurity
@@ -69,6 +70,14 @@ public class SecurityConfig {
         httpSecurity
                 .sessionManagement((session)
                         -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        httpSecurity.logout((logout) -> logout
+                .logoutUrl("/logout")
+                .addLogoutHandler(redisLogoutHandler)
+                .logoutSuccessHandler((request, response, authentication) -> {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                })
+        );
 
         return httpSecurity.build();
     }
