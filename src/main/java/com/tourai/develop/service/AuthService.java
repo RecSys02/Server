@@ -13,7 +13,6 @@ import com.tourai.develop.jwt.RefreshTokenService;
 import com.tourai.develop.repository.TagRepository;
 import com.tourai.develop.repository.UserRepository;
 import com.tourai.develop.validation.PasswordValidator;
-import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,6 +20,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -91,6 +91,30 @@ public class AuthService {
                 .refreshToken(newRefreshToken)
                 .build();
 
+    }
+
+    @Transactional
+    public User findOrCreateAndGetUserForOAuth2(String provider, String providerId, String email) {
+
+        String username = provider + "_" + providerId;
+
+        User findUser = userRepository.findByUserName(username).orElse(null);
+
+        if (findUser == null) {
+            //존재하지 않는 경우
+
+            String randomPassword = UUID.randomUUID().toString();
+            String encodedRandomPassword = bCryptPasswordEncoder.encode(randomPassword);
+
+            User user = User.builder()
+                    .userName(username)
+                    .email(email)
+                    .password(encodedRandomPassword)
+                    .build();
+            return userRepository.save(user);
+        }
+        //존재하는 경우
+        return findUser;
     }
 
 
