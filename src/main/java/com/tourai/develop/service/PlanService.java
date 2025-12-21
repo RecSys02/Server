@@ -3,6 +3,7 @@ package com.tourai.develop.service;
 import com.tourai.develop.domain.entity.*;
 import com.tourai.develop.dto.PlaceItem;
 import com.tourai.develop.dto.request.PlanRequestDto;
+import com.tourai.develop.dto.response.PlanResponseDto;
 import com.tourai.develop.repository.PlanLikeRepository;
 import com.tourai.develop.repository.PlanRepository;
 import com.tourai.develop.repository.TagRepository;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -25,6 +27,35 @@ public class PlanService {
     private final TagRepository tagRepository;
 
     private final PlanAiService planAiService;
+
+    public PlanResponseDto getPlanDetail(Long planId) {
+        Plan plan = planRepository.findById(planId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 planId 입니다: " + planId));
+        return PlanResponseDto.from(plan);
+    }
+
+    public List<PlanResponseDto> getPublicPlans() {
+        return planRepository.findByIsPrivateFalseOrderByCreatedAtDesc().stream()
+                .map(PlanResponseDto::from)
+                .collect(Collectors.toList());
+    }
+
+    public List<PlanResponseDto> getUserPlans(Long targetUserId, String requesterEmail) {
+        User requester = userRepository.findByEmail(requesterEmail)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + requesterEmail));
+
+        if (requester.getId().equals(targetUserId)) {
+            // 본인의 Plan 조회 (모든 Plan)
+            return planRepository.findByUserIdOrderByCreatedAtDesc(targetUserId).stream()
+                    .map(PlanResponseDto::from)
+                    .collect(Collectors.toList());
+        } else {
+            // 타인의 Plan 조회 (공개된 Plan만)
+            return planRepository.findByUserIdAndIsPrivateFalseOrderByCreatedAtDesc(targetUserId).stream()
+                    .map(PlanResponseDto::from)
+                    .collect(Collectors.toList());
+        }
+    }
 
     @Transactional
     public void savePlan(PlanRequestDto planRequestDto) {
@@ -72,24 +103,33 @@ public class PlanService {
     }
 
     @Transactional
-    public void togglePlanLike(Long planId, Long userId) {
+    public void addPlanLike(Long planId, String email) {
         Plan plan = planRepository.findById(planId)
                 .orElseThrow(() -> new IllegalArgumentException("Plan not found: " + planId));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + email));
 
-        Optional<PlanLike> existingLike = planLikeRepository.findByUserAndPlan(user, plan);
-
-        if (existingLike.isPresent()) {
-            // 이미 좋아요를 눌렀다면 -> 취소(삭제)
-            planLikeRepository.delete(existingLike.get());
-        } else {
-            // 좋아요 안 눌렀다면 -> 추가
-            PlanLike newLike = PlanLike.builder()
-                    .user(user)
-                    .plan(plan)
-                    .build();
-            planLikeRepository.save(newLike);
+        if (planLikeRepository.findByUserAndPlan(user, plan).isPresent()) {
+            throw new IllegalArgumentException("이미 좋아요를 눌렀습니다.");
         }
+
+        PlanLike newLike = PlanLike.builder()
+                .user(user)
+                .plan(plan)
+                .build();
+        planLikeRepository.save(newLike);
+    }
+
+    @Transactional
+    public void removePlanLike(Long planId, String email) {
+        Plan plan = planRepository.findById(planId)
+                .orElseThrow(() -> new IllegalArgumentException("Plan not found: " + planId));
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + email));
+
+        PlanLike existingLike = planLikeRepository.findByUserAndPlan(user, plan)
+                .orElseThrow(() -> new IllegalArgumentException("좋아요를 누르지 않았습니다."));
+
+        planLikeRepository.delete(existingLike);
     }
 }
