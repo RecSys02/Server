@@ -39,7 +39,18 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        log.info("attemptAuthentication 들어왔음!");
+        log.info("LoginFilter.attemptAuthentication 들어왔음!");
+        if (!"/login".equals(request.getRequestURI()) || !"POST".equals(request.getMethod())) {
+            log.info("로그인 요청이 아니므로 LoginFilter를 통과시킵니다.");
+            log.info("METHOD={}, URI={}, QS={}, Referer={}",
+                    request.getMethod(),
+                    request.getRequestURI(),
+                    request.getQueryString(),
+                    request.getHeader("Referer"));
+            return null;
+        }
+
+        log.info("LoginFilter.attemptAuthentication 진입 - 정상 로그인 시도");
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             LoginDto loginDto = objectMapper.readValue(request.getInputStream(), LoginDto.class);
@@ -56,7 +67,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException, ServletException {
-        log.info("successfulAuthentication 들어왔음!");
+        log.info("LoginFilter.successfulAuthentication 들어왔음!");
 
         CustomUserDetails principal = (CustomUserDetails) authentication.getPrincipal();
         String username = principal.getUsername();
@@ -86,7 +97,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
-        log.info("unsuccessfulAuthentication 들어왔음!");
+        log.info("LoginFilter.unsuccessfulAuthentication 들어왔음!");
 
         response.setStatus(401);
     }
