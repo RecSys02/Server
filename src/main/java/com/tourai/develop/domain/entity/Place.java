@@ -1,5 +1,6 @@
 package com.tourai.develop.domain.entity;
 
+import com.tourai.develop.domain.enumType.Category;
 import com.tourai.develop.domain.enumType.Region;
 import jakarta.persistence.*;
 import lombok.*;
@@ -24,8 +25,12 @@ public class Place {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "place_id", nullable = false, unique = true)
+    @Column(name = "place_id", nullable = false)
     private Long placeId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false)
+    private Category category;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "place_region", nullable = false)
@@ -34,13 +39,19 @@ public class Place {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
+    @Column(name = "address", nullable = false, length = 100)
+    private String address;
+
+    @Column(name = "duration", length = 50)
+    private String duration;
+
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "picture", columnDefinition = "jsonb")
+    @Column(name = "images", columnDefinition = "jsonb")
     @Builder.Default
-    private List<String> picture = new ArrayList<>();
+    private List<String> images = new ArrayList<>();
 
     @Column(name = "longitude")
     private Double longitude;
@@ -48,11 +59,11 @@ public class Place {
     @Column(name = "latitude")
     private Double latitude;
 
-    public void update(Region placeRegion, String name, String description, List<String> picture, Double latitude, Double longitude) {
+    public void update(Region placeRegion, String name, String description, List<String> images, Double latitude, Double longitude) {
         this.placeRegion = placeRegion;
         this.name = name;
         this.description = description;
-        this.picture = picture;
+        this.images = images;
         this.latitude = latitude;
         this.longitude = longitude;
     }

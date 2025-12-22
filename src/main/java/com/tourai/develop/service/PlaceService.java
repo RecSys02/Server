@@ -54,7 +54,7 @@ public class PlaceService {
                                         info.region(),
                                         info.name(),
                                         info.description(),
-                                        info.pictures(),
+                                        info.images(),
                                         info.latitude(),
                                         info.longitude()
                                 );
@@ -67,7 +67,7 @@ public class PlaceService {
                                         .placeRegion(info.region())
                                         .name(info.name())
                                         .description(info.description())
-                                        .picture(info.pictures())
+                                        .images(info.images())
                                         .latitude(info.latitude())
                                         .longitude(info.longitude())
                                         .build();
