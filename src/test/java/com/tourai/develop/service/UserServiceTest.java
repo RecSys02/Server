@@ -68,13 +68,13 @@ class UserServiceTest {
     void editUserTags() {
 
         Tag tag1 = Tag.builder()
-                .category(Category.cafe)
+                .category(Category.CAFE)
                 .name("카페").build();
         Tag tag2 = Tag.builder()
-                .category(Category.restaurant)
+                .category(Category.RESTAURANT)
                 .name("식당").build();
         Tag tag3 = Tag.builder()
-                .category(Category.tourSpot)
+                .category(Category.TOURSPOT)
                 .name("관광지").build();
         tagRepository.save(tag1);
         tagRepository.save(tag2);
