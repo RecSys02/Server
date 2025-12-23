@@ -14,6 +14,7 @@ import com.tourai.develop.dto.response.RecommendationResponseDto;
 import com.tourai.develop.repository.PlaceRepository;
 import com.tourai.develop.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -112,30 +113,15 @@ public class RecommendationService {
                 switch (recommendationCategory) {
 
                     case TOURSPOT -> {
-                        RecommendationResponseDto.RecommendedPlaceDto recommendedPlaceDto = new RecommendationResponseDto.RecommendedPlaceDto(
-                                findPlace.getId(), findPlace.getPlaceId(), findPlace.getName(), findPlace.getLatitude(),
-                                findPlace.getLongitude(), findPlace.getAddress(), findPlace.getDescription(),
-                                findPlace.getDuration(), findPlace.getImages(), findPlace.getKeywords(),
-                                findPlace.getCategory(), findPlace.getProvince()
-                        );
+                        RecommendationResponseDto.RecommendedPlaceDto recommendedPlaceDto = getRecommendedPlaceDto(findPlace);
                         tourspot.add(recommendedPlaceDto);
                     }
                     case RESTAURANT -> {
-                        RecommendationResponseDto.RecommendedPlaceDto recommendedPlaceDto = new RecommendationResponseDto.RecommendedPlaceDto(
-                                findPlace.getId(), findPlace.getPlaceId(), findPlace.getName(), findPlace.getLatitude(),
-                                findPlace.getLongitude(), findPlace.getAddress(), findPlace.getDescription(),
-                                findPlace.getDuration(), findPlace.getImages(), findPlace.getKeywords(),
-                                findPlace.getCategory(), findPlace.getProvince()
-                        );
+                        RecommendationResponseDto.RecommendedPlaceDto recommendedPlaceDto = getRecommendedPlaceDto(findPlace);
                         restaurants.add(recommendedPlaceDto);
                     }
                     case CAFE -> {
-                        RecommendationResponseDto.RecommendedPlaceDto recommendedPlaceDto = new RecommendationResponseDto.RecommendedPlaceDto(
-                                findPlace.getId(), findPlace.getPlaceId(), findPlace.getName(), findPlace.getLatitude(),
-                                findPlace.getLongitude(), findPlace.getAddress(), findPlace.getDescription(),
-                                findPlace.getDuration(), findPlace.getImages(), findPlace.getKeywords(),
-                                findPlace.getCategory(), findPlace.getProvince()
-                        );
+                        RecommendationResponseDto.RecommendedPlaceDto recommendedPlaceDto = getRecommendedPlaceDto(findPlace);
                         cafes.add(recommendedPlaceDto);
                     }
 
@@ -144,5 +130,15 @@ public class RecommendationService {
         }
 
         return new RecommendationResponseDto(tourspot, restaurants, cafes);
+    }
+
+    private RecommendationResponseDto.RecommendedPlaceDto getRecommendedPlaceDto(Place findPlace) {
+        RecommendationResponseDto.RecommendedPlaceDto recommendedPlaceDto = new RecommendationResponseDto.RecommendedPlaceDto(
+                findPlace.getId(), findPlace.getPlaceId(), findPlace.getName(), findPlace.getLatitude(),
+                findPlace.getLongitude(), findPlace.getAddress(), findPlace.getDescription(),
+                findPlace.getDuration(), findPlace.getImages(), findPlace.getKeywords(),
+                findPlace.getCategory(), findPlace.getProvince()
+        );
+        return recommendedPlaceDto;
     }
 }
