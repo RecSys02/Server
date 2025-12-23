@@ -1,8 +1,7 @@
 package com.tourai.develop.domain.enumType;
 
-public enum Region {
+public enum Province {
     SEOUL,
-    GYEONGGI,
     BUSAN,
     JEJU
 }

@@ -1,6 +1,6 @@
 package com.tourai.develop.dto.request;
 
-import com.tourai.develop.domain.enumType.Region;
+import com.tourai.develop.domain.enumType.Province;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
@@ -25,8 +25,8 @@ public record PlanRequestDto(
         @Min(value = 1, message = "여행 기간은 최소 1일 이상이어야 합니다.")
         Integer duration,
 
-        @NotNull(message = "Region은 필수입니다.")
-        Region placeRegion,
+        @NotNull(message = "Province는 필수입니다.")
+        Province province,
 
         @NotNull(message = "공개 여부는 필수입니다.")
         Boolean isPrivate

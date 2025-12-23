@@ -5,7 +5,7 @@ import com.tourai.develop.domain.entity.Plan;
 import com.tourai.develop.domain.entity.Tag;
 import com.tourai.develop.domain.entity.User;
 import com.tourai.develop.domain.enumType.Category;
-import com.tourai.develop.domain.enumType.Region;
+import com.tourai.develop.domain.enumType.Province;
 import com.tourai.develop.dto.PlaceItem;
 import com.tourai.develop.dto.request.PlanRequestDto;
 import com.tourai.develop.repository.PlaceRepository;
@@ -82,7 +82,9 @@ public class PlanServiceTest {
         Place place1 = Place.builder()
                 .placeId(1L)
                 .name("Place1")
-                .placeRegion(Region.SEOUL)
+                .province(Province.SEOUL)
+                .address("address")
+                .category(Category.TOURSPOT)
                 .description("Place 1 Description")
                 .build();
         placeRepository.save(place1);
@@ -90,7 +92,9 @@ public class PlanServiceTest {
         Place place2 = Place.builder()
                 .placeId(2L)
                 .name("Place2")
-                .placeRegion(Region.SEOUL)
+                .province(Province.SEOUL)
+                .address("address")
+                .category(Category.TOURSPOT)
                 .description("Place 2 Description")
                 .build();
         placeRepository.save(place2);
@@ -111,19 +115,19 @@ public class PlanServiceTest {
                     {
                       "time": "12:00-13:00",
                       "place_id": 1,
-                      "place_region": "SEOUL",
+                      "province": "SEOUL",
                       "place_name": "place 1"
                     },
                     {
                       "time": "14:00-15:00",
                       "place_id": 2,
-                      "place_region": "SEOUL",
+                      "province": "SEOUL",
                       "place_name": "place 2"
                     },
                     {
                       "time": "17:00-18:00",
                       "place_id": 3,
-                      "place_region": "SEOUL",
+                      "province": "SEOUL",
                       "place_name": "place 3"
                     }
                   ],
@@ -131,13 +135,13 @@ public class PlanServiceTest {
                     {
                       "time": "10:00-11:00",
                       "place_id": 4,
-                      "place_region": "SEOUL",
+                      "province": "SEOUL",
                       "place_name": "place 4"
                     },
                     {
                       "time": "11:00-13:00",
                       "place_id": 5,
-                      "place_region": "SEOUL",
+                      "province": "SEOUL",
                       "place_name": "place 5"
                     }
                   ]
@@ -151,7 +155,9 @@ public class PlanServiceTest {
         Place place1 = Place.builder()
                 .placeId(1L)
                 .name("Place1")
-                .placeRegion(Region.SEOUL)
+                .province(Province.SEOUL)
+                .address("address")
+                .category(Category.TOURSPOT)
                 .description("Place 1 Description")
                 .build();
         placeRepository.save(place1);
@@ -159,7 +165,9 @@ public class PlanServiceTest {
         Place place2 = Place.builder()
                 .placeId(2L)
                 .name("Place2")
-                .placeRegion(Region.SEOUL)
+                .province(Province.SEOUL)
+                .address("address")
+                .category(Category.TOURSPOT)
                 .description("Place 2 Description")
                 .build();
         placeRepository.save(place2);
@@ -191,7 +199,9 @@ public class PlanServiceTest {
         Place place1 = Place.builder()
                 .placeId(1L)
                 .name("Place1")
-                .placeRegion(Region.SEOUL)
+                .province(Province.SEOUL)
+                .address("address")
+                .category(Category.TOURSPOT)
                 .description("Place 1 Description")
                 .build();
         placeRepository.save(place1);
@@ -199,7 +209,9 @@ public class PlanServiceTest {
         Place place2 = Place.builder()
                 .placeId(2L)
                 .name("Place2")
-                .placeRegion(Region.SEOUL)
+                .province(Province.SEOUL)
+                .address("address")
+                .category(Category.TOURSPOT)
                 .description("Place 2 Description")
                 .build();
         placeRepository.save(place2);
@@ -208,11 +220,11 @@ public class PlanServiceTest {
         // Tags
         Tag tag1 = Tag.builder()
                 .name("Tag1")
-                .category(Category.cafe)
+                .category(Category.CAFE)
                 .build();
         Tag tag2 = Tag.builder()
                 .name("Tag2")
-                .category(Category.restaurant)
+                .category(Category.RESTAURANT)
                 .build();
         tagRepository.saveAll(List.of(tag1, tag2));
         List<Long> tagIds = List.of(tag1.getId(), tag2.getId());
@@ -224,6 +236,7 @@ public class PlanServiceTest {
                 .duration(1)
                 .placeIds(placeIds)
                 .tagIds(tagIds)
+                .province(Province.SEOUL)
                 .isPrivate(true)
                 .build();
 
