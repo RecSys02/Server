@@ -15,12 +15,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class UserService extends PasswordValidator {
+public class UserService  {
     // 회원정보 관리 메서드 구현
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-
+    private final PasswordValidator passwordValidator;
 
     @Transactional
     public void editUserInfo(Long userId, EditProfileDto dto) {
@@ -50,7 +50,7 @@ public class UserService extends PasswordValidator {
 
         if (dto.getPassword() != null) {
 
-            validatePassword(dto.getPassword());
+            passwordValidator.validatePassword(dto.getPassword());
 
             findUser.changePassword(dto.getPassword(), bCryptPasswordEncoder);
         }

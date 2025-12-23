@@ -7,21 +7,20 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Map;
 
 @Slf4j
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
@@ -29,14 +28,29 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
 
-    public LoginFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
+    private final RefreshTokenService refreshTokenService;
+
+    public LoginFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil, RefreshTokenService refreshTokenService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
+        this.refreshTokenService = refreshTokenService;
     }
+
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        log.info("attemptAuthentication 들어왔음!");
+        log.info("LoginFilter.attemptAuthentication 들어왔음!");
+        if (!"/login".equals(request.getRequestURI()) || !"POST".equals(request.getMethod())) {
+            log.info("로그인 요청이 아니므로 LoginFilter를 통과시킵니다.");
+            log.info("METHOD={}, URI={}, QS={}, Referer={}",
+                    request.getMethod(),
+                    request.getRequestURI(),
+                    request.getQueryString(),
+                    request.getHeader("Referer"));
+            return null;
+        }
+
+        log.info("LoginFilter.attemptAuthentication 진입 - 정상 로그인 시도");
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             LoginDto loginDto = objectMapper.readValue(request.getInputStream(), LoginDto.class);
@@ -53,7 +67,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException, ServletException {
-        log.info("successfulAuthentication 들어왔음!");
+        log.info("LoginFilter.successfulAuthentication 들어왔음!");
 
         CustomUserDetails principal = (CustomUserDetails) authentication.getPrincipal();
         String username = principal.getUsername();
@@ -64,15 +78,29 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         String role = auth.getAuthority();
 
+        Long accessTokenExpiredMs = 60 * 60 * 10L;
+        Long refreshTokenExpiredMs = 864 * 100000L;
 
-        String jwtToken = jwtUtil.createJwt(username, role, 60 * 60 * 10L);
-        response.addHeader("Authorization", "Bearer " + jwtToken);
+        String accessToken = jwtUtil.createJwt("access", username, role, accessTokenExpiredMs);
+        String refreshToken = jwtUtil.createJwt("refresh", username, role, refreshTokenExpiredMs);
+
+        refreshTokenService.save(username, refreshToken, Duration.ofMillis(refreshTokenExpiredMs));
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        response.addCookie(jwtUtil.createCookie("refresh", refreshToken, refreshTokenExpiredMs));
+        new ObjectMapper().writeValue(response.getWriter(), Map.of("accessToken", accessToken));
+
     }
 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
-        log.info("unsuccessfulAuthentication 들어왔음!");
+        log.info("LoginFilter.unsuccessfulAuthentication 들어왔음!");
 
         response.setStatus(401);
     }
+
+
 }

@@ -1,5 +1,8 @@
 package com.tourai.develop.validation;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class PasswordValidator {
 
     public void validatePassword(String password) {

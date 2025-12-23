@@ -32,12 +32,12 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-
+        log.info("JwtFilter.doFilterInternal 들어왔음!");
         String authorization = request.getHeader("Authorization");
 
         if (authorization == null || !authorization.startsWith("Bearer ")) {
 
-            log.info("얘 Jwt 토큰 안가지고 있어!!!");
+            log.info("JwtFilter.doFilterInternal -> 얘 Jwt 토큰 안가지고 있어!!!");
             filterChain.doFilter(request, response);
             return;
         }

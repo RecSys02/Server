@@ -58,7 +58,7 @@ public class PlanServiceTest {
         em.clear();
 
         // 1. 좋아요 추가
-        planService.togglePlanLike(plan.getId(), user.getId());
+        planService.addPlanLike(plan.getId(), user.getEmail());
 
         em.flush();
         em.clear();
@@ -67,7 +67,7 @@ public class PlanServiceTest {
         Assertions.assertThat(likedPlan.getLikeCount()).isEqualTo(1);
 
         // 2. 좋아요 취소
-        planService.togglePlanLike(plan.getId(), user.getId());
+        planService.removePlanLike(plan.getId(), user.getEmail());
 
         em.flush();
         em.clear();

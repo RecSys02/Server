@@ -1,9 +1,10 @@
 package com.tourai.develop.config;
 
-import com.tourai.develop.jwt.JwtFilter;
-import com.tourai.develop.jwt.JwtUtil;
-import com.tourai.develop.jwt.LoginFilter;
+import com.tourai.develop.jwt.*;
+import com.tourai.develop.oauth2.CustomOAuth2UserService;
+import com.tourai.develop.oauth2.CustomSuccessHandler;
 import com.tourai.develop.service.CustomUserDetailsService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,11 +24,9 @@ public class SecurityConfig {
 
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JwtUtil jwtUtil;
-
-    @Bean
-    public BCryptPasswordEncoder bCryptPasswordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+    private final RefreshTokenService refreshTokenService;
+    private final RedisLogoutHandler redisLogoutHandler;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -37,7 +36,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity,
                                            AuthenticationManager authenticationManager,
-                                           CustomUserDetailsService customUserDetailsService) throws Exception {
+                                           CustomUserDetailsService customUserDetailsService,
+                                           CustomSuccessHandler customSuccessHandler) throws Exception {
 
         httpSecurity
                 .csrf((auth) -> auth.disable());
@@ -50,12 +50,16 @@ public class SecurityConfig {
 
         httpSecurity
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/login", "/", "/join").permitAll()
+                        .requestMatchers("/login", "/", "/join",
+                                "/auth/reissue", "/oauth2/**",
+                                "/login/oauth2/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().authenticated());
 
 
-        LoginFilter loginFilter = new LoginFilter(authenticationManager, jwtUtil);
+        LoginFilter loginFilter = new LoginFilter(authenticationManager, jwtUtil, refreshTokenService);
+        loginFilter.setPostOnly(true);
         loginFilter.setFilterProcessesUrl("/login");
 
         httpSecurity
@@ -66,9 +70,25 @@ public class SecurityConfig {
                 .addFilterBefore(new JwtFilter(jwtUtil, customUserDetailsService), LoginFilter.class);
 
 
+        //oauth2
+        httpSecurity
+                .oauth2Login((oauth2) -> oauth2
+                        .userInfoEndpoint((userInfoEndpointConfig -> userInfoEndpointConfig
+                                .userService(customOAuth2UserService)))
+                        .successHandler(customSuccessHandler));
+
+
         httpSecurity
                 .sessionManagement((session)
                         -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        httpSecurity.logout((logout) -> logout
+                .logoutUrl("/logout")
+                .addLogoutHandler(redisLogoutHandler)
+                .logoutSuccessHandler((request, response, authentication) -> {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                })
+        );
 
         return httpSecurity.build();
     }
