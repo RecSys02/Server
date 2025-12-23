@@ -41,7 +41,7 @@ class PlaceDataSyncIntegrationTest {
 
         // Check Place ID 1
         Place place1 = places.stream()
-                .filter(p -> p.getPlaceId().equals(1L) && p.getCategory() == Category.TOURSPOT && p.getProvince() == com.tourai.develop.domain.enumType.Province.SEOUL)
+                .filter(p -> p.getPlaceId().equals(1L) && p.getCategory() == Category.TOURSPOT && p.getProvince() == Province.SEOUL)
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("Place ID 1 (TOURSPOT, SEOUL) not found"));
 
