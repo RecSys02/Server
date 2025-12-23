@@ -1,6 +1,8 @@
 package com.tourai.develop.service;
 
 import com.tourai.develop.domain.entity.Place;
+import com.tourai.develop.domain.enumType.Category;
+import com.tourai.develop.domain.enumType.Region;
 import com.tourai.develop.dto.PlaceInfo;
 import com.tourai.develop.repository.PlaceRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,16 +30,15 @@ public class PlaceService {
      */
     @Transactional
     public void syncPlaces(List<PlaceInfo> placeInfos) {
-        // 1. 입력받은 데이터들의 ID 집합 생성
-        Set<Long> newPlaceIds = placeInfos.stream()
-                .map(PlaceInfo::placeId)
+        record PlaceKey(Long placeId, Category category, Region region) {}
+
+        Set<PlaceKey> newPlaceKeys = placeInfos.stream()
+                .map(info -> new PlaceKey(info.placeId(), info.category(), info.region()))
                 .collect(Collectors.toSet());
 
-        // 2. DB에 존재하지만 입력 리스트에는 없는(삭제 대상) 데이터 식별 및 삭제
-        // 주의: placeId가 아예 사라진 경우만 삭제함. 같은 placeId의 다른 카테고리/지역 데이터 정리는 별도 로직 필요 가능성 있음.
         List<Place> allPlaces = placeRepository.findAll();
         List<Place> placesToDelete = allPlaces.stream()
-                .filter(place -> !newPlaceIds.contains(place.getPlaceId()))
+                .filter(place -> !newPlaceKeys.contains(new PlaceKey(place.getPlaceId(), place.getCategory(), place.getPlaceRegion())))
                 .toList();
 
         if (!placesToDelete.isEmpty()) {
@@ -45,7 +46,6 @@ public class PlaceService {
             log.info("Deleted {} places that are no longer in the list.", placesToDelete.size());
         }
 
-        // 3. 추가 또는 갱신 (Upsert)
         for (PlaceInfo info : placeInfos) {
             placeRepository.findByPlaceIdAndCategoryAndPlaceRegion(info.placeId(), info.category(), info.region())
                     .ifPresentOrElse(
