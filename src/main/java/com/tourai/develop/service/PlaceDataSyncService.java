@@ -69,6 +69,14 @@ public class PlaceDataSyncService {
             }
         }
 
+        List<String> keywords = new ArrayList<>();
+        JsonNode keywordsNode = node.path("keywords");
+        if (keywordsNode.isArray()) {
+            for (JsonNode kwNode : keywordsNode) {
+                keywords.add(kwNode.asText());
+            }
+        }
+
         Double latitude = node.get("latitude").asDouble();
         Double longitude = node.get("longitude").asDouble();
 
@@ -92,6 +100,7 @@ public class PlaceDataSyncService {
                 duration,
                 description,
                 images,
+                keywords,
                 latitude,
                 longitude
         );

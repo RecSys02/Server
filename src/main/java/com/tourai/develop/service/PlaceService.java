@@ -59,6 +59,7 @@ public class PlaceService {
                                         info.duration(),
                                         info.description(),
                                         info.images(),
+                                        info.keywords(),
                                         info.latitude(),
                                         info.longitude()
                                 );
@@ -75,6 +76,7 @@ public class PlaceService {
                                         .duration(info.duration())
                                         .description(info.description())
                                         .images(info.images())
+                                        .keywords(info.keywords())
                                         .latitude(info.latitude())
                                         .longitude(info.longitude())
                                         .build();

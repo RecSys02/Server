@@ -53,13 +53,18 @@ public class Place {
     @Builder.Default
     private List<String> images = new ArrayList<>();
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "keywords", columnDefinition = "jsonb")
+    @Builder.Default
+    private List<String> keywords = new ArrayList<>();
+
     @Column(name = "longitude")
     private Double longitude;
 
     @Column(name = "latitude")
     private Double latitude;
 
-    public void update(Category category, Region placeRegion, String name, String address, String duration, String description, List<String> images, Double latitude, Double longitude) {
+    public void update(Category category, Region placeRegion, String name, String address, String duration, String description, List<String> images, List<String> keywords, Double latitude, Double longitude) {
         this.category = category;
         this.placeRegion = placeRegion;
         this.name = name;
@@ -67,6 +72,7 @@ public class Place {
         this.duration = duration;
         this.description = description;
         this.images = images;
+        this.keywords = keywords;
         this.latitude = latitude;
         this.longitude = longitude;
     }

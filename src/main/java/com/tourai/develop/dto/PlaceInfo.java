@@ -13,6 +13,7 @@ public record PlaceInfo(
     String duration,
     String description,
     List<String> images,
+    List<String> keywords,
     Double latitude,
     Double longitude
 ) {}
