@@ -10,7 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,58 +34,66 @@ public class PlaceService {
     public void syncPlaces(List<PlaceInfo> placeInfos) {
         record PlaceKey(Long placeId, Category category, Region region) {}
 
-        Set<PlaceKey> newPlaceKeys = placeInfos.stream()
-                .map(info -> new PlaceKey(info.placeId(), info.category(), info.region()))
-                .collect(Collectors.toSet());
+        // 1. Prepare a map of incoming data for efficient lookup.
+        Map<PlaceKey, PlaceInfo> newPlacesMap = placeInfos.stream()
+                .collect(Collectors.toMap(
+                        info -> new PlaceKey(info.placeId(), info.category(), info.region()),
+                        java.util.function.Function.identity(),
+                        (existing, replacement) -> replacement // Handle duplicates in source data
+                ));
 
-        List<Place> allPlaces = placeRepository.findAll();
-        List<Place> placesToDelete = allPlaces.stream()
-                .filter(place -> !newPlaceKeys.contains(new PlaceKey(place.getPlaceId(), place.getCategory(), place.getPlaceRegion())))
+        // 2. Fetch all existing places and map them by their key.
+        // Note: findAll() can be a performance bottleneck with very large tables.
+        Map<PlaceKey, Place> existingPlacesMap = placeRepository.findAll().stream()
+                .collect(Collectors.toMap(
+                        p -> new PlaceKey(p.getPlaceId(), p.getCategory(), p.getPlaceRegion()),
+                        java.util.function.Function.identity()
+                ));
+
+        // 3. Determine which places to delete.
+        List<Place> placesToDelete = existingPlacesMap.values().stream()
+                .filter(p -> !newPlacesMap.containsKey(new PlaceKey(p.getPlaceId(), p.getCategory(), p.getPlaceRegion())))
                 .toList();
 
         if (!placesToDelete.isEmpty()) {
-            placeRepository.deleteAll(placesToDelete);
+            placeRepository.deleteAllInBatch(placesToDelete); // Use batch deletion for performance.
             log.info("Deleted {} places that are no longer in the list.", placesToDelete.size());
         }
 
-        for (PlaceInfo info : placeInfos) {
-            placeRepository.findByPlaceIdAndCategoryAndPlaceRegion(info.placeId(), info.category(), info.region())
-                    .ifPresentOrElse(
-                            existingPlace -> {
-                                // 이미 존재하면 정보 업데이트
-                                existingPlace.update(
-                                        info.category(),
-                                        info.region(),
-                                        info.name(),
-                                        info.address(),
-                                        info.duration(),
-                                        info.description(),
-                                        info.images(),
-                                        info.keywords(),
-                                        info.latitude(),
-                                        info.longitude()
-                                );
-                                log.debug("Place updated: {} (id: {}, cat: {}, region: {})", info.name(), info.placeId(), info.category(), info.region());
-                            },
-                            () -> {
-                                // 존재하지 않으면 새로 저장
-                                Place newPlace = Place.builder()
-                                        .placeId(info.placeId())
-                                        .category(info.category())
-                                        .placeRegion(info.region())
-                                        .name(info.name())
-                                        .address(info.address())
-                                        .duration(info.duration())
-                                        .description(info.description())
-                                        .images(info.images())
-                                        .keywords(info.keywords())
-                                        .latitude(info.latitude())
-                                        .longitude(info.longitude())
-                                        .build();
-                                placeRepository.save(newPlace);
-                                log.info("New Place registered: {} (id: {}, cat: {}, region: {})", info.name(), info.placeId(), info.category(), info.region());
-                            }
-                    );
+        // 4. Determine places to create and update.
+        List<Place> placesToCreate = new ArrayList<>();
+        for (PlaceInfo info : newPlacesMap.values()) {
+            PlaceKey key = new PlaceKey(info.placeId(), info.category(), info.region());
+            Place existingPlace = existingPlacesMap.get(key);
+
+            if (existingPlace != null) {
+                // Update existing place. Changes will be flushed at transaction commit.
+                existingPlace.update(
+                        info.category(), info.region(), info.name(), info.address(), info.duration(),
+                        info.description(), info.images(), info.keywords(), info.latitude(), info.longitude()
+                );
+                log.debug("Place updated: {} (id: {}, cat: {}, region: {})", info.name(), info.placeId(), info.category(), info.region());
+            } else {
+                // Add new place to a list for batch insertion.
+                placesToCreate.add(Place.builder()
+                        .placeId(info.placeId())
+                        .category(info.category())
+                        .placeRegion(info.region())
+                        .name(info.name())
+                        .address(info.address())
+                        .duration(info.duration())
+                        .description(info.description())
+                        .images(info.images())
+                        .keywords(info.keywords())
+                        .latitude(info.latitude())
+                        .longitude(info.longitude())
+                        .build());
+            }
+        }
+
+        if (!placesToCreate.isEmpty()) {
+            placeRepository.saveAll(placesToCreate); // Use batch insertion for performance.
+            log.info("Registered {} new places.", placesToCreate.size());
         }
     }
 }
