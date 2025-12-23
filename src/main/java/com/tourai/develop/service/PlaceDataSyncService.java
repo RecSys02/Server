@@ -37,8 +37,10 @@ public class PlaceDataSyncService {
                 for (JsonNode node : rootNode) {
                     try {
                         placeInfos.add(mapToPlaceInfo(node));
+                    } catch (IllegalArgumentException | NullPointerException e) {
+                        log.error("Failed to map JSON node to PlaceInfo due to invalid data: {}. Error: {}", node, e.getMessage());
                     } catch (Exception e) {
-                        log.error("Failed to map JSON node to PlaceInfo: {}", node, e);
+                        log.error("An unexpected error occurred while mapping JSON node: {}. Error: {}", node, e.getMessage());
                     }
                 }
             }
