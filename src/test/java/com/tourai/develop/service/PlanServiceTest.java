@@ -83,6 +83,8 @@ public class PlanServiceTest {
                 .placeId(1L)
                 .name("Place1")
                 .placeRegion(Region.SEOUL)
+                .address("address")
+                .category(Category.TOURSPOT)
                 .description("Place 1 Description")
                 .build();
         placeRepository.save(place1);
@@ -91,6 +93,8 @@ public class PlanServiceTest {
                 .placeId(2L)
                 .name("Place2")
                 .placeRegion(Region.SEOUL)
+                .address("address")
+                .category(Category.TOURSPOT)
                 .description("Place 2 Description")
                 .build();
         placeRepository.save(place2);
@@ -152,6 +156,8 @@ public class PlanServiceTest {
                 .placeId(1L)
                 .name("Place1")
                 .placeRegion(Region.SEOUL)
+                .address("address")
+                .category(Category.TOURSPOT)
                 .description("Place 1 Description")
                 .build();
         placeRepository.save(place1);
@@ -160,6 +166,8 @@ public class PlanServiceTest {
                 .placeId(2L)
                 .name("Place2")
                 .placeRegion(Region.SEOUL)
+                .address("address")
+                .category(Category.TOURSPOT)
                 .description("Place 2 Description")
                 .build();
         placeRepository.save(place2);
@@ -192,6 +200,8 @@ public class PlanServiceTest {
                 .placeId(1L)
                 .name("Place1")
                 .placeRegion(Region.SEOUL)
+                .address("address")
+                .category(Category.TOURSPOT)
                 .description("Place 1 Description")
                 .build();
         placeRepository.save(place1);
@@ -200,6 +210,8 @@ public class PlanServiceTest {
                 .placeId(2L)
                 .name("Place2")
                 .placeRegion(Region.SEOUL)
+                .address("address")
+                .category(Category.TOURSPOT)
                 .description("Place 2 Description")
                 .build();
         placeRepository.save(place2);
@@ -208,11 +220,11 @@ public class PlanServiceTest {
         // Tags
         Tag tag1 = Tag.builder()
                 .name("Tag1")
-                .category(Category.cafe)
+                .category(Category.CAFE)
                 .build();
         Tag tag2 = Tag.builder()
                 .name("Tag2")
-                .category(Category.restaurant)
+                .category(Category.RESTAURANT)
                 .build();
         tagRepository.saveAll(List.of(tag1, tag2));
         List<Long> tagIds = List.of(tag1.getId(), tag2.getId());

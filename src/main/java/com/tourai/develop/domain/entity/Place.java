@@ -59,9 +59,12 @@ public class Place {
     @Column(name = "latitude")
     private Double latitude;
 
-    public void update(Region placeRegion, String name, String description, List<String> images, Double latitude, Double longitude) {
+    public void update(Category category, Region placeRegion, String name, String address, String duration, String description, List<String> images, Double latitude, Double longitude) {
+        this.category = category;
         this.placeRegion = placeRegion;
         this.name = name;
+        this.address = address;
+        this.duration = duration;
         this.description = description;
         this.images = images;
         this.latitude = latitude;

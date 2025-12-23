@@ -34,6 +34,7 @@ public class PlaceService {
                 .collect(Collectors.toSet());
 
         // 2. DB에 존재하지만 입력 리스트에는 없는(삭제 대상) 데이터 식별 및 삭제
+        // 주의: placeId가 아예 사라진 경우만 삭제함. 같은 placeId의 다른 카테고리/지역 데이터 정리는 별도 로직 필요 가능성 있음.
         List<Place> allPlaces = placeRepository.findAll();
         List<Place> placesToDelete = allPlaces.stream()
                 .filter(place -> !newPlaceIds.contains(place.getPlaceId()))
@@ -46,33 +47,39 @@ public class PlaceService {
 
         // 3. 추가 또는 갱신 (Upsert)
         for (PlaceInfo info : placeInfos) {
-            placeRepository.findByPlaceId(info.placeId())
+            placeRepository.findByPlaceIdAndCategoryAndPlaceRegion(info.placeId(), info.category(), info.region())
                     .ifPresentOrElse(
                             existingPlace -> {
                                 // 이미 존재하면 정보 업데이트
                                 existingPlace.update(
+                                        info.category(),
                                         info.region(),
                                         info.name(),
+                                        info.address(),
+                                        info.duration(),
                                         info.description(),
                                         info.images(),
                                         info.latitude(),
                                         info.longitude()
                                 );
-                                log.debug("Place updated: {} (id: {})", info.name(), info.placeId());
+                                log.debug("Place updated: {} (id: {}, cat: {}, region: {})", info.name(), info.placeId(), info.category(), info.region());
                             },
                             () -> {
                                 // 존재하지 않으면 새로 저장
                                 Place newPlace = Place.builder()
                                         .placeId(info.placeId())
+                                        .category(info.category())
                                         .placeRegion(info.region())
                                         .name(info.name())
+                                        .address(info.address())
+                                        .duration(info.duration())
                                         .description(info.description())
                                         .images(info.images())
                                         .latitude(info.latitude())
                                         .longitude(info.longitude())
                                         .build();
                                 placeRepository.save(newPlace);
-                                log.info("New Place registered: {} (id: {})", info.name(), info.placeId());
+                                log.info("New Place registered: {} (id: {}, cat: {}, region: {})", info.name(), info.placeId(), info.category(), info.region());
                             }
                     );
         }
