@@ -1,9 +1,9 @@
 package com.tourai.develop.controller;
 
 import com.tourai.develop.dto.CustomUserDetails;
-import com.tourai.develop.dto.RecommendationDto;
+import com.tourai.develop.dto.request.RecommendationRequestDto;
 import com.tourai.develop.dto.response.AiRecommendationResponse;
-import com.tourai.develop.service.CustomUserDetailsService;
+import com.tourai.develop.dto.response.RecommendationResponseDto;
 import com.tourai.develop.service.RecommendationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,12 +24,12 @@ public class RecommendationController {
     @PostMapping("/recommend")
     public ResponseEntity<?> recommend(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @RequestBody RecommendationDto recommendationDto) {
+            @RequestBody RecommendationRequestDto recommendationRequestDto) {
         log.info("RecommendationController.recommend 들어왔음!");
         Long userId = customUserDetails.getUserId();
         log.info("userId : " + userId);
-        AiRecommendationResponse aiRecommendationResponse = recommendationService.recommend(userId, recommendationDto);
-        return ResponseEntity.ok(aiRecommendationResponse);
+        RecommendationResponseDto recommendationResponseDto = recommendationService.recommend(userId, recommendationRequestDto);
+        return ResponseEntity.ok(recommendationResponseDto);
     }
 }
 
