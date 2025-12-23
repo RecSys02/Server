@@ -6,6 +6,7 @@ import com.tourai.develop.domain.entity.Tag;
 import com.tourai.develop.domain.entity.User;
 import com.tourai.develop.domain.enumType.Category;
 import com.tourai.develop.domain.enumType.Region;
+import com.tourai.develop.domain.enumType.TagType;
 import com.tourai.develop.dto.PlaceItem;
 import com.tourai.develop.dto.request.PlanRequestDto;
 import com.tourai.develop.repository.PlaceRepository;
@@ -208,11 +209,11 @@ public class PlanServiceTest {
         // Tags
         Tag tag1 = Tag.builder()
                 .name("Tag1")
-                .category(Category.cafe)
+                .tagType(TagType.CAFE)
                 .build();
         Tag tag2 = Tag.builder()
                 .name("Tag2")
-                .category(Category.restaurant)
+                .tagType(TagType.RESTAURANT)
                 .build();
         tagRepository.saveAll(List.of(tag1, tag2));
         List<Long> tagIds = List.of(tag1.getId(), tag2.getId());
