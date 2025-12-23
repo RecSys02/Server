@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.time.Duration;
+
 @Component
 public class FastApiClient {
 
@@ -25,7 +27,7 @@ public class FastApiClient {
                 .bodyValue(request)
                 .retrieve()
                 .bodyToMono(AiRecommendationResponse.class)
-                .block();
+                .block(Duration.ofSeconds(10));
     }
 
 
