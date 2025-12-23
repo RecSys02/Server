@@ -1,6 +1,9 @@
 spring:
   application:
     name: develop
+  jackson:
+    mapper:
+      accept-case-insensitive-enums: true
 
   datasource:
     url: jdbc:postgresql://localhost:5432/tourai
