@@ -46,7 +46,7 @@ public class PlanAiService {
         for (int i = 0; i < size; i++) {
             Place place = places.get(i);
 
-            sb1.append(place.getName()).append("(여행지 id: ").append(i).append(", region: ").append(place.getPlaceRegion()).append(")").append(", ");
+            sb1.append(place.getName()).append("(여행지 id: ").append(i).append(", province: ").append(place.getProvince()).append(")").append(", ");
             sb2.append(place.getName()).append(" 여행지 설명: ").append(place.getDescription()).append("\n");
 
         }

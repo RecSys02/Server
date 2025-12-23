@@ -1,7 +1,7 @@
 package com.tourai.develop.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tourai.develop.domain.enumType.Region;
+import com.tourai.develop.domain.enumType.Province;
 import com.tourai.develop.dto.PlaceInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -59,7 +59,7 @@ class PlaceDataSyncServiceTest {
 
         assertThat(gangnamMice.name()).isEqualTo("강남 마이스 관광특구");
         assertThat(gangnamMice.category()).isEqualTo(com.tourai.develop.domain.enumType.Category.TOURSPOT); // 매핑 로직 확인
-        assertThat(gangnamMice.region()).isEqualTo(Region.SEOUL);
+        assertThat(gangnamMice.province()).isEqualTo(Province.SEOUL);
         assertThat(gangnamMice.latitude()).isEqualTo(37.5118092746);
         assertThat(gangnamMice.longitude()).isEqualTo(127.0591318945);
         assertThat(gangnamMice.images()).isNotEmpty();

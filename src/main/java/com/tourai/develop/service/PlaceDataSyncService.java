@@ -3,7 +3,7 @@ package com.tourai.develop.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tourai.develop.domain.enumType.Category;
-import com.tourai.develop.domain.enumType.Region;
+import com.tourai.develop.domain.enumType.Province;
 import com.tourai.develop.dto.PlaceInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -91,12 +91,13 @@ public class PlaceDataSyncService {
             duration = durationNode.asText();
         }
 
-        Region region = Region.valueOf(node.get("region").asText().toUpperCase());
+        // JSON has "region" key but we map it to Province enum
+        Province province = Province.valueOf(node.get("region").asText().toUpperCase());
 
         return new PlaceInfo(
                 placeId,
                 category,
-                region,
+                province,
                 name,
                 address,
                 duration,

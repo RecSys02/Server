@@ -2,7 +2,7 @@ package com.tourai.develop.service;
 
 import com.tourai.develop.domain.entity.Place;
 import com.tourai.develop.domain.enumType.Category;
-import com.tourai.develop.domain.enumType.Region;
+import com.tourai.develop.domain.enumType.Province;
 import com.tourai.develop.dto.PlaceInfo;
 import com.tourai.develop.repository.PlaceRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -32,12 +31,12 @@ public class PlaceService {
      */
     @Transactional
     public void syncPlaces(List<PlaceInfo> placeInfos) {
-        record PlaceKey(Long placeId, Category category, Region region) {}
+        record PlaceKey(Long placeId, Category category, Province province) {}
 
         // 1. Prepare a map of incoming data for efficient lookup.
         Map<PlaceKey, PlaceInfo> newPlacesMap = placeInfos.stream()
                 .collect(Collectors.toMap(
-                        info -> new PlaceKey(info.placeId(), info.category(), info.region()),
+                        info -> new PlaceKey(info.placeId(), info.category(), info.province()),
                         java.util.function.Function.identity(),
                         (existing, replacement) -> replacement // Handle duplicates in source data
                 ));
@@ -46,13 +45,13 @@ public class PlaceService {
         // Note: findAll() can be a performance bottleneck with very large tables.
         Map<PlaceKey, Place> existingPlacesMap = placeRepository.findAll().stream()
                 .collect(Collectors.toMap(
-                        p -> new PlaceKey(p.getPlaceId(), p.getCategory(), p.getPlaceRegion()),
+                        p -> new PlaceKey(p.getPlaceId(), p.getCategory(), p.getProvince()),
                         java.util.function.Function.identity()
                 ));
 
         // 3. Determine which places to delete.
         List<Place> placesToDelete = existingPlacesMap.values().stream()
-                .filter(p -> !newPlacesMap.containsKey(new PlaceKey(p.getPlaceId(), p.getCategory(), p.getPlaceRegion())))
+                .filter(p -> !newPlacesMap.containsKey(new PlaceKey(p.getPlaceId(), p.getCategory(), p.getProvince())))
                 .toList();
 
         if (!placesToDelete.isEmpty()) {
@@ -63,22 +62,22 @@ public class PlaceService {
         // 4. Determine places to create and update.
         List<Place> placesToCreate = new ArrayList<>();
         for (PlaceInfo info : newPlacesMap.values()) {
-            PlaceKey key = new PlaceKey(info.placeId(), info.category(), info.region());
+            PlaceKey key = new PlaceKey(info.placeId(), info.category(), info.province());
             Place existingPlace = existingPlacesMap.get(key);
 
             if (existingPlace != null) {
                 // Update existing place. Changes will be flushed at transaction commit.
                 existingPlace.update(
-                        info.category(), info.region(), info.name(), info.address(), info.duration(),
+                        info.category(), info.province(), info.name(), info.address(), info.duration(),
                         info.description(), info.images(), info.keywords(), info.latitude(), info.longitude()
                 );
-                log.debug("Place updated: {} (id: {}, cat: {}, region: {})", info.name(), info.placeId(), info.category(), info.region());
+                log.debug("Place updated: {} (id: {}, cat: {}, province: {})", info.name(), info.placeId(), info.category(), info.province());
             } else {
                 // Add new place to a list for batch insertion.
                 placesToCreate.add(Place.builder()
                         .placeId(info.placeId())
                         .category(info.category())
-                        .placeRegion(info.region())
+                        .province(info.province())
                         .name(info.name())
                         .address(info.address())
                         .duration(info.duration())

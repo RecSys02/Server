@@ -2,6 +2,7 @@ package com.tourai.develop.service;
 
 import com.tourai.develop.domain.entity.Place;
 import com.tourai.develop.domain.enumType.Category;
+import com.tourai.develop.domain.enumType.Province;
 import com.tourai.develop.repository.PlaceRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,9 +41,9 @@ class PlaceDataSyncIntegrationTest {
 
         // Check Place ID 1
         Place place1 = places.stream()
-                .filter(p -> p.getPlaceId().equals(1L))
+                .filter(p -> p.getPlaceId().equals(1L) && p.getCategory() == Category.TOURSPOT && p.getProvince() == com.tourai.develop.domain.enumType.Province.SEOUL)
                 .findFirst()
-                .orElseThrow(() -> new AssertionError("Place ID 1 not found"));
+                .orElseThrow(() -> new AssertionError("Place ID 1 (TOURSPOT, SEOUL) not found"));
 
         // Assertions based on expected JSON content
         assertThat(place1.getCategory()).isEqualTo(Category.TOURSPOT);

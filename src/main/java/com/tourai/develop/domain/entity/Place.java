@@ -1,7 +1,7 @@
 package com.tourai.develop.domain.entity;
 
 import com.tourai.develop.domain.enumType.Category;
-import com.tourai.develop.domain.enumType.Region;
+import com.tourai.develop.domain.enumType.Province;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -33,8 +33,8 @@ public class Place {
     private Category category;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "place_region", nullable = false)
-    private Region placeRegion;
+    @Column(name = "province", nullable = false)
+    private Province province;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
@@ -64,9 +64,9 @@ public class Place {
     @Column(name = "latitude")
     private Double latitude;
 
-    public void update(Category category, Region placeRegion, String name, String address, String duration, String description, List<String> images, List<String> keywords, Double latitude, Double longitude) {
+    public void update(Category category, Province province, String name, String address, String duration, String description, List<String> images, List<String> keywords, Double latitude, Double longitude) {
         this.category = category;
-        this.placeRegion = placeRegion;
+        this.province = province;
         this.name = name;
         this.address = address;
         this.duration = duration;
