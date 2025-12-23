@@ -16,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@Transactional
 class PlaceDataSyncIntegrationTest {
 
     @Autowired
@@ -42,10 +43,6 @@ class PlaceDataSyncIntegrationTest {
                 .filter(p -> p.getPlaceId().equals(1L))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("Place ID 1 not found"));
-
-        System.out.println("Place 1 Category: " + place1.getCategory());
-        System.out.println("Place 1 Duration: " + place1.getDuration());
-        System.out.println("Place 1 Images: " + place1.getImages());
 
         // Assertions based on expected JSON content
         assertThat(place1.getCategory()).isEqualTo(Category.TOURSPOT);

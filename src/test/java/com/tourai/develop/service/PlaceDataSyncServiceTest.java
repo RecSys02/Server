@@ -49,10 +49,6 @@ class PlaceDataSyncServiceTest {
 
         // 1. 데이터가 비어있지 않은지 확인
         assertThat(mappedPlaces).isNotEmpty();
-        System.out.println("Mapped " + mappedPlaces.size() + " places from JSON.");
-
-        // 매핑된 데이터 전체 출력
-        mappedPlaces.forEach(System.out::println);
 
         // 2. 특정 데이터(예: 강남 마이스 관광특구) 매핑 검증
         // place_id: 1

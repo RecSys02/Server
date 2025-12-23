@@ -28,9 +28,7 @@ public class PlaceDataSyncService {
      * @param filePath 리소스 경로 (예: "data/place/poi_seoul.json")
      */
     public void syncFromJson(String filePath) {
-        try {
-            ClassPathResource resource = new ClassPathResource(filePath);
-            InputStream inputStream = resource.getInputStream();
+        try (InputStream inputStream = new ClassPathResource(filePath).getInputStream()) {
             JsonNode rootNode = objectMapper.readTree(inputStream);
 
             List<PlaceInfo> placeInfos = new ArrayList<>();
@@ -84,10 +82,6 @@ public class PlaceDataSyncService {
         }
 
         Region region = Region.valueOf(node.get("region").asText().toUpperCase());
-
-        if (placeId == 1L) {
-            log.info("Mapped Place ID 1: Name={}, Duration={}, ImagesCount={}", name, duration, images.size());
-        }
 
         return new PlaceInfo(
                 placeId,
