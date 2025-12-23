@@ -6,6 +6,7 @@ import com.tourai.develop.domain.entity.Tag;
 import com.tourai.develop.domain.entity.User;
 import com.tourai.develop.domain.enumType.Category;
 import com.tourai.develop.domain.enumType.Province;
+import com.tourai.develop.domain.enumType.TagType;
 import com.tourai.develop.dto.PlaceItem;
 import com.tourai.develop.dto.request.PlanRequestDto;
 import com.tourai.develop.repository.PlaceRepository;
@@ -103,8 +104,6 @@ public class PlanServiceTest {
         Integer duration = 1;
 
         System.out.println(planAiService.makePromptFromPlaces(placeIds, duration));
-
-
     }
 
     @Test
@@ -217,15 +216,17 @@ public class PlanServiceTest {
         placeRepository.save(place2);
         List<Long> placeIds = Arrays.asList(1L, 2L);
 
-        // Tags
+        // Tags (Tag 엔티티는 category가 아니라 tagType을 사용)
         Tag tag1 = Tag.builder()
                 .name("Tag1")
-                .category(Category.CAFE)
+                .tagType(TagType.CAFE)
                 .build();
+
         Tag tag2 = Tag.builder()
                 .name("Tag2")
-                .category(Category.RESTAURANT)
+                .tagType(TagType.RESTAURANT)
                 .build();
+
         tagRepository.saveAll(List.of(tag1, tag2));
         List<Long> tagIds = List.of(tag1.getId(), tag2.getId());
 
@@ -251,6 +252,7 @@ public class PlanServiceTest {
         Assertions.assertThat(savedPlan.getName()).isEqualTo("Plan1");
         Assertions.assertThat(savedPlan.getSchedule()).isNotNull();
         Assertions.assertThat(savedPlan.getPlanTags()).hasSize(2);
+
         List<String> savedTagNames = savedPlan.getPlanTags().stream()
                 .map(pt -> pt.getTag().getName())
                 .toList();

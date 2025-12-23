@@ -4,6 +4,7 @@ import com.tourai.develop.domain.entity.Tag;
 import com.tourai.develop.domain.entity.User;
 import com.tourai.develop.domain.entity.UserTag;
 import com.tourai.develop.domain.enumType.Category;
+import com.tourai.develop.domain.enumType.TagType;
 import com.tourai.develop.dto.EditProfileDto;
 import com.tourai.develop.dto.EditUserTagsDto;
 import com.tourai.develop.repository.TagRepository;
@@ -68,14 +69,14 @@ class UserServiceTest {
     void editUserTags() {
 
         Tag tag1 = Tag.builder()
-                .category(Category.CAFE)
+                .tagType(TagType.CAFE)
                 .name("카페").build();
         Tag tag2 = Tag.builder()
-                .category(Category.RESTAURANT)
+                .tagType(TagType.RESTAURANT)
                 .name("식당").build();
         Tag tag3 = Tag.builder()
-                .category(Category.TOURSPOT)
-                .name("관광지").build();
+                .tagType(TagType.AVOID)
+                .name("너무 시끄러운").build();
         tagRepository.save(tag1);
         tagRepository.save(tag2);
         tagRepository.save(tag3);
