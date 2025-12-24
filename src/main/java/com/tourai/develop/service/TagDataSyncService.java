@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +30,7 @@ public class TagDataSyncService {
      * 기존 데이터와 비교하여 변경사항이 있을 때만 업데이트합니다.
      * @param filePath 리소스 경로
      */
+    @Transactional
     public void syncTagsFromJson(String filePath) {
         try (InputStream inputStream = new ClassPathResource(filePath).getInputStream()) {
             JsonNode rootNode = objectMapper.readTree(inputStream);
@@ -85,6 +87,7 @@ public class TagDataSyncService {
                 for (Tag tag : tagsToDelete) {
                     try {
                         tagRepository.delete(tag);
+                        tagRepository.flush(); // Force delete to happen immediately to catch constraint violations
                         deletedCount++;
                     } catch (Exception e) {
                         log.warn("Failed to delete tag '{}' (ID: {}). It might be in use. Error: {}",
