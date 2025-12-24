@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tourai.develop.domain.entity.Tag;
 import com.tourai.develop.domain.enumType.TagType;
-import com.tourai.develop.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
@@ -22,12 +21,14 @@ import java.util.stream.StreamSupport;
 @RequiredArgsConstructor
 public class TagDataSyncService {
 
-    private final TagRepository tagRepository;
+    private final TagService tagService;
     private final ObjectMapper objectMapper;
 
     /**
      * JSON 파일을 읽어서 Tag 데이터를 DB와 동기화합니다.
-     * 기존 데이터와 비교하여 변경사항이 있을 때만 업데이트합니다.
+     * - JSON에 있고 DB에 없으면: 추가
+     * - JSON에 없고 DB에 있으면: 삭제하지 않고 로그로 남김 (추후 처리)
+     * - 둘 다 있으면: 패스
      * @param filePath 리소스 경로
      */
     @Transactional
@@ -53,7 +54,7 @@ public class TagDataSyncService {
                 }
             });
 
-            List<Tag> currentTags = tagRepository.findAll();
+            List<Tag> currentTags = tagService.findAll();
 
             // A record for cleaner comparison logic.
             record TagIdentifier(TagType tagType, String name) {
@@ -72,37 +73,31 @@ public class TagDataSyncService {
                 return;
             }
 
-            List<Tag> tagsToDelete = currentTagMap.entrySet().stream()
+            // 1. JSON에 없고 DB에 있는 태그 (삭제 대상이지만 삭제하지 않음)
+            List<Tag> tagsNotInJson = currentTagMap.entrySet().stream()
                     .filter(entry -> !newTagMap.containsKey(entry.getKey()))
                     .map(Map.Entry::getValue)
                     .collect(Collectors.toList());
 
+            if (!tagsNotInJson.isEmpty()) {
+                List<String> tagNames = tagsNotInJson.stream()
+                        .map(tag -> tag.getTagType() + ":" + tag.getName())
+                        .collect(Collectors.toList());
+                log.info("Found {} tags in DB that are missing from JSON. Deletion skipped for now: {}", 
+                        tagsNotInJson.size(), tagNames);
+            }
+
+            // 2. JSON에 있고 DB에 없는 태그 (추가 대상)
             List<Tag> tagsToAdd = newTagMap.entrySet().stream()
                     .filter(entry -> !currentTagMap.containsKey(entry.getKey()))
                     .map(Map.Entry::getValue)
                     .collect(Collectors.toList());
 
-            if (!tagsToDelete.isEmpty()) {
-                int deletedCount = 0;
-                for (Tag tag : tagsToDelete) {
-                    try {
-                        tagRepository.delete(tag);
-                        tagRepository.flush(); // Force delete to happen immediately to catch constraint violations
-                        deletedCount++;
-                    } catch (Exception e) {
-                        log.warn("Failed to delete tag '{}' (ID: {}). It might be in use. Error: {}",
-                                tag.getName(), tag.getId(), e.getMessage());
-                    }
-                }
-                if (deletedCount > 0) {
-                    log.info("Deleted {} obsolete tags.", deletedCount);
-                }
-            }
-
             if (!tagsToAdd.isEmpty()) {
-                tagRepository.saveAll(tagsToAdd);
+                tagService.saveAll(tagsToAdd);
                 log.info("Added {} new tags.", tagsToAdd.size());
             }
+
             log.info("Tag synchronization completed for {}.", filePath);
 
         } catch (IOException e) {

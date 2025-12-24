@@ -12,6 +12,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @EntityListeners(AuditingEntityListener.class)
+@Table(name = "tag", uniqueConstraints = {
+    @UniqueConstraint(name = "uk_tag_type_name", columnNames = {"tagType", "name"})
+})
 public class Tag {
 
     @Id
