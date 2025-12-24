@@ -66,7 +66,10 @@ public class TagDataSyncService {
             Map<TagIdentifier, Tag> currentTagMap = currentTags.stream()
                     .collect(Collectors.toMap(TagIdentifier::from, tag -> tag));
             Map<TagIdentifier, Tag> newTagMap = newTags.stream()
-                    .collect(Collectors.toMap(TagIdentifier::from, tag -> tag, (t1, t2) -> t1));
+                    .collect(Collectors.toMap(TagIdentifier::from, tag -> tag, (t1, t2) -> {
+                        log.warn("Duplicate tag found in JSON: type={}, name={}", t1.getTagType(), t1.getName());
+                        return t1;
+                    }));
 
             if (currentTagMap.keySet().equals(newTagMap.keySet())) {
                 log.info("Tags are already up-to-date. Skipping synchronization.");
