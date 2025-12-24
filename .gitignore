@@ -41,3 +41,6 @@ out/
 
 # 맥
 .DS_Store
+
+# data
+src/main/resources/data/
