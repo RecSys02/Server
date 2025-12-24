@@ -3,6 +3,7 @@ package com.tourai.develop.service;
 import com.tourai.develop.domain.entity.Tag;
 import com.tourai.develop.domain.entity.User;
 import com.tourai.develop.domain.enumType.Category;
+import com.tourai.develop.domain.enumType.TagType;
 import com.tourai.develop.dto.SignUpDto;
 import com.tourai.develop.repository.TagRepository;
 import com.tourai.develop.repository.UserRepository;
@@ -33,11 +34,11 @@ class AuthServiceTest {
     public void signUp() {
 
         Tag tag1 = Tag.builder()
-                .category(Category.cafe)
+                .tagType(TagType.CAFE)
                 .name("따뜻한").build();
 
         Tag tag2 = Tag.builder()
-                .category(Category.restaurant)
+                .tagType(TagType.RESTAURANT)
                 .name("차가운").build();
 
         tagRepository.save(tag1);
