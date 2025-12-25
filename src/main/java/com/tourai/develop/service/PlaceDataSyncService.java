@@ -72,7 +72,8 @@ public class PlaceDataSyncService {
         }
 
         List<String> keywords = new ArrayList<>();
-        JsonNode keywordsNode = node.path("keywords");
+        // JSON 파일의 필드명이 keyword 또는 keywords일 수 있으므로 둘 다 확인
+        JsonNode keywordsNode = node.has("keyword") ? node.path("keyword") : node.path("keywords");
         if (keywordsNode.isArray()) {
             for (JsonNode kwNode : keywordsNode) {
                 keywords.add(kwNode.asText());
@@ -91,8 +92,8 @@ public class PlaceDataSyncService {
             duration = durationNode.asText();
         }
 
-        // JSON has "region" key but we map it to Province enum
-        Province province = Province.valueOf(node.get("region").asText().toUpperCase());
+        // JSON has "province" key but we map it to Province enum
+        Province province = Province.valueOf(node.get("province").asText().toUpperCase());
 
         return new PlaceInfo(
                 placeId,
