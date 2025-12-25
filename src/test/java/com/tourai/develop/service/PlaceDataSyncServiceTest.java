@@ -36,7 +36,7 @@ class PlaceDataSyncServiceTest {
     @DisplayName("JSON 파일 매핑 테스트: DB 저장 없이 객체 변환 로직만 검증")
     void verifyJsonMappingTest() {
         // given
-        String testJsonPath = "data/place/poi_seoul_251222.json";
+        String testJsonPath = "data/place/poi_seoul_251224.json";
 
         // when
         placeDataSyncService.syncFromJson(testJsonPath);
