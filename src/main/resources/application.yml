@@ -6,9 +6,9 @@ spring:
       accept-case-insensitive-enums: true
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/tourai
-    username: tourai
-    password: tourai
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -21,7 +21,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
   jwt:
-    secret: vmfhaltmskdlstkfkdgodyroqkfwkdbalroqkfwkdbalaaaaaaaaaaaaaaaabbbbb
+    secret: ${JWT_SECRET}
 
   data:
     redis:
@@ -68,3 +68,6 @@ data:
 
 ai:
   base-url: http://localhost:8000
+
+gemini:
+  api-key: ${GEMINI_API_KEY}

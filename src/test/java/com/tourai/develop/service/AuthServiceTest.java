@@ -35,11 +35,11 @@ class AuthServiceTest {
 
         Tag tag1 = Tag.builder()
                 .tagType(TagType.CAFE)
-                .name("따뜻한").build();
+                .name("따뜻").build();
 
         Tag tag2 = Tag.builder()
                 .tagType(TagType.RESTAURANT)
-                .name("차가운").build();
+                .name("차가").build();
 
         tagRepository.save(tag1);
         tagRepository.save(tag2);
