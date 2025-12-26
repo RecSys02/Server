@@ -22,7 +22,7 @@ import java.util.Optional;
 @Slf4j
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
-    private final AuthService authService;
+    private final OAuth2AccountService oAuth2AccountService;
 
 
     @Override
@@ -37,7 +37,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         oAuth2Response = setOAuth2Response(oAuth2User, registrationId);
 
-        User user = authService.findOrCreateAndGetUserForOAuth2(oAuth2Response.getProvider(), oAuth2Response.getProviderId(), oAuth2Response.getEmail());
+        User user = oAuth2AccountService.findOrCreateAndGetUserForOAuth2(oAuth2Response.getProvider(), oAuth2Response.getProviderId(), oAuth2Response.getEmail());
         return new CustomOAuth2User(user);
 
     }
