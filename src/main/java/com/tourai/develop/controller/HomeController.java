@@ -26,7 +26,7 @@ public class HomeController {
         GrantedAuthority auth = iterator.next();
         String role = auth.getAuthority();
 
-        return "AuthController 단 도착 -> email : " + email + ", role : " + role;
+        return "HomeController 단 도착 -> email : " + email + ", role : " + role;
 
     }
 }
