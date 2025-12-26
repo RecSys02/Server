@@ -8,6 +8,8 @@ import com.tourai.develop.exception.*;
 import com.tourai.develop.exception.enumType.ErrorCode;
 import com.tourai.develop.jwt.JwtUtil;
 import com.tourai.develop.jwt.RefreshTokenService;
+import com.tourai.develop.oauth2.OAuth2LoginService;
+import com.tourai.develop.oauth2.OAuth2SignUpService;
 import com.tourai.develop.repository.TagRepository;
 import com.tourai.develop.repository.UserRepository;
 import com.tourai.develop.validation.PasswordValidator;
@@ -18,7 +20,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
-import java.util.UUID;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +33,8 @@ public class AuthService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final PasswordValidator passwordValidator;
     private final RefreshTokenService refreshTokenService;
+    private final OAuth2LoginService oAuth2LoginService;
+    private final OAuth2SignUpService oAuth2SignUpService;
     private final JwtUtil jwtUtil;
     public final static Long accessTokenExpiredMs = 60 * 60 * 10L;
     public final static Long refreshTokenExpiredMs = 864 * 100000L;
@@ -90,6 +94,22 @@ public class AuthService {
                 .build();
 
     }
+
+    @Transactional
+    public User findOrCreateAndGetUserForOAuth2(String provider, String providerId, String email) {
+
+        String username = provider + "_" + providerId;
+        Optional<User> findUser = userRepository.findByUserName(username);
+
+        if (findUser.isPresent()) {
+            //기존 OAuth2 회원일 경우
+            return oAuth2LoginService.login(findUser.get());
+        }
+        //새롭게 OAuth2 가입하는 경우
+        return oAuth2SignUpService.signUp(provider, providerId, email);
+
+    }
+
 
     private String validateRefreshTokenAndGetUsername(String refreshToken) {
         if (refreshToken == null) {
