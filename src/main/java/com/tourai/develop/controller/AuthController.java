@@ -1,9 +1,12 @@
 package com.tourai.develop.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tourai.develop.dto.LoginDto;
 import com.tourai.develop.dto.ReissueDto;
+import com.tourai.develop.dto.SignUpDto;
 import com.tourai.develop.jwt.CookieUtil;
 import com.tourai.develop.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -14,9 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -25,27 +26,25 @@ import java.util.Map;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
+@RequestMapping("/auth")
 public class AuthController {
     private final AuthService authService;
     private final CookieUtil cookieUtil;
 
-    @GetMapping("/")
-    public String home() {
+    @PostMapping("/join")
+    public ResponseEntity<?> signUp(@RequestBody SignUpDto signUpDto) {
+        log.info("AuthController.signUp 들어왔음!");
+        authService.signUp(signUpDto);
 
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-        Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
-        GrantedAuthority auth = iterator.next();
-        String role = auth.getAuthority();
-
-        return "AuthController 단 도착 -> email : " + email + ", role : " + role;
-
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(Map.of(
+                        "message", "회원가입 성공!",
+                        "email", signUpDto.email(),
+                        "userName", signUpDto.userName()
+                ));
     }
 
-
-    @PostMapping("/auth/reissue")
+    @PostMapping("/reissue")
     public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
         log.info("AuthController.reissue 안에 들어왔음!");
         String refreshToken = null;
@@ -69,4 +68,10 @@ public class AuthController {
         response.addCookie(cookieUtil.createCookie("refresh", newRefreshToken, newRefreshTokenExpiredMs));
         return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
     }
+
+    @Operation(summary = "로그인", description = "이메일과 비밀번호를 사용하여 로그인합니다. 실제 처리는 Spring Security 필터에서 이루어집니다.")
+    @PostMapping("/login")
+    public void login(@RequestBody LoginDto loginDto) {
+    }
+
 }
