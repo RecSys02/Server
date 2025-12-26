@@ -30,7 +30,7 @@ class PlaceDataSyncIntegrationTest {
     @DisplayName("Integration Test: Sync JSON to DB and verify fields")
     void verifySyncToDatabase() {
         // given
-        String testJsonPath = "data/place/poi_seoul_251222.json";
+        String testJsonPath = "data/place/poi_seoul_251224.json";
 
         // when
         placeDataSyncService.syncFromJson(testJsonPath);

@@ -62,7 +62,7 @@ spring:
 data:
   sync:
     place:
-      filepath: data/place/poi_seoul_251222.json
+      filepath: data/place/poi_seoul_251224.json
     tag:
       filepath: data/tags.json
 
