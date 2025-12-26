@@ -50,9 +50,10 @@ public class SecurityConfig {
 
         httpSecurity
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/login", "/", "/join",
+                        .requestMatchers("/auth/login", "/", "/auth/join", "/auth/logout",
                                 "/auth/reissue", "/oauth2/**",
-                                "/login/oauth2/**").permitAll()
+                                "/login/oauth2/**",
+                                "/error").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().authenticated());
@@ -60,7 +61,7 @@ public class SecurityConfig {
 
         LoginFilter loginFilter = new LoginFilter(authenticationManager, jwtUtil, refreshTokenService);
         loginFilter.setPostOnly(true);
-        loginFilter.setFilterProcessesUrl("/login");
+        loginFilter.setFilterProcessesUrl("/auth/login");
 
         httpSecurity
                 .addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class);
@@ -83,12 +84,24 @@ public class SecurityConfig {
                         -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         httpSecurity.logout((logout) -> logout
-                .logoutUrl("/logout")
+                .logoutUrl("/auth/logout")
                 .addLogoutHandler(redisLogoutHandler)
                 .logoutSuccessHandler((request, response, authentication) -> {
                     response.setStatus(HttpServletResponse.SC_OK);
                 })
         );
+
+        httpSecurity.exceptionHandling(e -> e
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+                    response.getWriter().write("""
+                                {"code":"AUTH_REQUIRED","message":"로그인 후 이용해주세요."}
+                            """);
+                })
+        );
+
 
         return httpSecurity.build();
     }

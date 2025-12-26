@@ -1,5 +1,8 @@
 package com.tourai.develop.jwt;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +32,7 @@ public class JwtUtil {
                 .claim("username", username)
                 .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 10000*expiredMs))
+                .expiration(new Date(System.currentTimeMillis() + 10000 * expiredMs))
                 .signWith(secretKey)
                 .compact();
     }
@@ -38,11 +41,24 @@ public class JwtUtil {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("tokenType", String.class);
     }
 
-    public boolean isExpired(String token) {
-        return Jwts.parser().verifyWith(secretKey)
-                .build().parseSignedClaims(token).getPayload()
-                .getExpiration().before(new Date());
+    public Claims parseAndValidate(String token) throws JwtException, IllegalArgumentException {
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
+
+    public boolean isExpired(String token) {
+        try {
+            return Jwts.parser().verifyWith(secretKey)
+                    .build().parseSignedClaims(token).getPayload()
+                    .getExpiration().before(new Date());
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
 
     public String getUsername(String token) {
         return Jwts.parser().verifyWith(secretKey)

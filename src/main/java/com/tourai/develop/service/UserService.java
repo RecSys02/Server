@@ -4,6 +4,8 @@ import com.tourai.develop.domain.entity.Tag;
 import com.tourai.develop.domain.entity.User;
 import com.tourai.develop.dto.EditProfileDto;
 import com.tourai.develop.dto.EditUserTagsDto;
+import com.tourai.develop.exception.BusinessException;
+import com.tourai.develop.exception.enumType.ErrorCode;
 import com.tourai.develop.repository.TagRepository;
 import com.tourai.develop.repository.UserRepository;
 import com.tourai.develop.validation.PasswordValidator;
@@ -15,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class UserService  {
+public class UserService {
     // 회원정보 관리 메서드 구현
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
@@ -25,34 +27,22 @@ public class UserService  {
     @Transactional
     public void editUserInfo(Long userId, EditProfileDto dto) {
 
-        User findUser = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 userId 입니다!"));
+        User findUser = userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
 
-        if (dto.getUserName() != null &&
-                !findUser.getUserName().equals(dto.getUserName())) {
+        if (dto.userName() != null &&
+                !findUser.getUserName().equals(dto.userName())) {
 
-            if (userRepository.existsByUserName(dto.getUserName())) {
-                throw new IllegalArgumentException("이미 사용 중인 닉네임 입니다!");
+            if (userRepository.existsByUserName(dto.userName())) {
+                throw new BusinessException(ErrorCode.DUPLICATE_USERNAME);
             }
-            findUser.changeUserName(dto.getUserName());
+            findUser.changeUserName(dto.userName());
         }
 
+        if (dto.password() != null) {
 
-        if (dto.getEmail() != null &&
-                !findUser.getEmail().equals(dto.getEmail())) {
-
-            if (userRepository.existsByEmail(dto.getEmail())) {
-                throw new IllegalArgumentException("이미 사용 중인 이메일 입니다!");
-            }
-            findUser.changeEmail(dto.getEmail());
-        }
-
-
-        if (dto.getPassword() != null) {
-
-            passwordValidator.validatePassword(dto.getPassword());
-
-            findUser.changePassword(dto.getPassword(), bCryptPasswordEncoder);
+            passwordValidator.validatePassword(dto.password());
+            findUser.changePassword(dto.password(), bCryptPasswordEncoder);
         }
 
 
@@ -60,13 +50,13 @@ public class UserService  {
 
     @Transactional
     public void editUserTags(Long userId, EditUserTagsDto dto) {
-        User findUser = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 userId 입니다!"));
+        User findUser = userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         findUser.clearTags();
 
-        if (dto.getUpdateTagIds() != null) {
-            for (Long tagId : dto.getUpdateTagIds()) {
-                Tag findTag = tagRepository.findById(tagId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 TagId 입니다!"));
+        if (dto.updateTagIds() != null) {
+            for (Long tagId : dto.updateTagIds()) {
+                Tag findTag = tagRepository.findById(tagId).orElseThrow(() -> new BusinessException(ErrorCode.TAG_NOT_FOUND));
                 findUser.addTag(findTag);
             }
         }

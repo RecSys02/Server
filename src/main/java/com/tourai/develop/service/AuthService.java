@@ -4,10 +4,8 @@ import com.tourai.develop.domain.entity.Tag;
 import com.tourai.develop.domain.entity.User;
 import com.tourai.develop.dto.ReissueDto;
 import com.tourai.develop.dto.SignUpDto;
-import com.tourai.develop.exception.InvalidRefreshTokenTypeException;
-import com.tourai.develop.exception.RefreshTokenExpiredException;
-import com.tourai.develop.exception.RefreshTokenMismatchException;
-import com.tourai.develop.exception.RefreshTokenNullException;
+import com.tourai.develop.exception.*;
+import com.tourai.develop.exception.enumType.ErrorCode;
 import com.tourai.develop.jwt.JwtUtil;
 import com.tourai.develop.jwt.RefreshTokenService;
 import com.tourai.develop.repository.TagRepository;
@@ -41,28 +39,28 @@ public class AuthService {
     public void signUp(SignUpDto signUpDto) {
 
         //이메일 중복 확인
-        if (userRepository.existsByEmail(signUpDto.getEmail())) {
-            throw new IllegalArgumentException("이미 사용중인 이메일 입니다!");
+        if (userRepository.existsByEmail(signUpDto.email())) {
+            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
 
         //닉네임 중복 확인
-        if (userRepository.existsByUserName(signUpDto.getUserName())) {
-            throw new IllegalArgumentException("이미 사용중인 닉네임 입니다!");
+        if (userRepository.existsByUserName(signUpDto.userName())) {
+            throw new BusinessException(ErrorCode.DUPLICATE_USERNAME);
         }
-        passwordValidator.validatePassword(signUpDto.getPassword());
+        passwordValidator.validatePassword(signUpDto.password());
 
-        String encodedPassword = bCryptPasswordEncoder.encode(signUpDto.getPassword());
+        String encodedPassword = bCryptPasswordEncoder.encode(signUpDto.password());
 
 
-        User user = User.builder().userName(signUpDto.getUserName())
-                .email(signUpDto.getEmail())
+        User user = User.builder().userName(signUpDto.userName())
+                .email(signUpDto.email())
                 .password(encodedPassword).build();
 
 
-        if (signUpDto.getTagIds() != null) {
-            for (Long tagId : signUpDto.getTagIds()) {
+        if (signUpDto.tagIds() != null) {
+            for (Long tagId : signUpDto.tagIds()) {
 
-                Tag tag = tagRepository.findById(tagId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 Tag id 입니다!"));
+                Tag tag = tagRepository.findById(tagId).orElseThrow(() -> new BusinessException(ErrorCode.TAG_NOT_FOUND));
                 user.addTag(tag);
             }
         }
@@ -120,16 +118,16 @@ public class AuthService {
 
     private String validateRefreshTokenAndGetUsername(String refreshToken) {
         if (refreshToken == null) {
-            throw new RefreshTokenNullException("refresh token is null");
+            throw new AuthException(ErrorCode.REFRESH_TOKEN_NULL);
         }
 
         if (jwtUtil.isExpired(refreshToken)) {
-            throw new RefreshTokenExpiredException("refresh token expired");
+            throw new AuthException(ErrorCode.REFRESH_TOKEN_EXPIRED);
         }
 
 
         if (!(jwtUtil.getTokenType(refreshToken)).equals("refresh")) {
-            throw new InvalidRefreshTokenTypeException("token type is not refresh");
+            throw new AuthException(ErrorCode.REFRESH_TOKEN_TYPE_INVALID);
         }
 
         return jwtUtil.getUsername(refreshToken);
@@ -138,7 +136,7 @@ public class AuthService {
 
     private void validateRefreshTokenMatchesRedis(String refreshToken, String email) {
         if (!refreshTokenService.isMatch(email, refreshToken)) {
-            throw new RefreshTokenMismatchException("refresh token mismatch at redis");
+            throw new AuthException(ErrorCode.REFRESH_TOKEN_MISMATCH);
         }
     }
 
