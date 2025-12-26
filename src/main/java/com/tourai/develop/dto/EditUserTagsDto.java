@@ -5,9 +5,6 @@ import lombok.Getter;
 
 import java.util.List;
 
-@Builder
-@Getter
-public class EditUserTagsDto {
-    private List<Long> updateTagIds; // 새롭게 덮어씌울 태그 리스트
-
-}
+public record EditUserTagsDto (
+         List<Long> updateTagIds // 새롭게 덮어씌울 태그 리스트
+){}
