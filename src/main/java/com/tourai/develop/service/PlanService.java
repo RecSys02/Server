@@ -1,6 +1,8 @@
 package com.tourai.develop.service;
 
+import com.tourai.develop.aop.annotation.UserActionLog;
 import com.tourai.develop.domain.entity.*;
+import com.tourai.develop.domain.enumType.Action;
 import com.tourai.develop.dto.PlaceItem;
 import com.tourai.develop.dto.request.PlanRequestDto;
 import com.tourai.develop.dto.response.PlanResponseDto;
@@ -14,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,8 +58,9 @@ public class PlanService {
         }
     }
 
+    @UserActionLog(action = Action.CREATE_PLAN)
     @Transactional
-    public void savePlan(PlanRequestDto planRequestDto) {
+    public Plan savePlan(PlanRequestDto planRequestDto) {
         User findUser = userRepository.findById(planRequestDto.userId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 userId 입니다!"));
 
@@ -84,14 +86,21 @@ public class PlanService {
             plan.addPlanTag(planTag);
         }
 
-        planRepository.save(plan);
+        return planRepository.save(plan);
     }
 
+    @UserActionLog(action = Action.DELETE_PLAN)
     @Transactional
-    public void deletePlan(Long planId) {
+    public Plan deletePlan(Long planId) {
         Plan plan = planRepository.findById(planId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 planId 입니다: " + planId));
+        
+        // TODO: 권한 체크 로직 필요 (현재 로그인한 사용자와 plan 작성자가 같은지)
+        // SecurityContextHolder를 사용하는 경우 여기서 체크하거나, 
+        // Controller에서 체크해서 넘겨줘야 함.
+        
         planRepository.delete(plan);
+        return plan; // 삭제된 Plan 객체 리턴 (AOP 로깅용)
     }
 
     @Transactional
@@ -99,11 +108,11 @@ public class PlanService {
         Plan plan = planRepository.findById(planId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 planId 입니다: " + planId));
         plan.updatePrivateStatus(isPrivate);
-
     }
 
+    @UserActionLog(action = Action.LIKE_PLAN)
     @Transactional
-    public void addPlanLike(Long planId, String email) {
+    public Plan addPlanLike(Long planId, String email) {
         Plan plan = planRepository.findById(planId)
                 .orElseThrow(() -> new IllegalArgumentException("Plan not found: " + planId));
         User user = userRepository.findByEmail(email)
@@ -118,10 +127,13 @@ public class PlanService {
                 .plan(plan)
                 .build();
         planLikeRepository.save(newLike);
+        
+        return plan;
     }
 
+    @UserActionLog(action = Action.UNLIKE_PLAN)
     @Transactional
-    public void removePlanLike(Long planId, String email) {
+    public Plan removePlanLike(Long planId, String email) {
         Plan plan = planRepository.findById(planId)
                 .orElseThrow(() -> new IllegalArgumentException("Plan not found: " + planId));
         User user = userRepository.findByEmail(email)
@@ -131,5 +143,7 @@ public class PlanService {
                 .orElseThrow(() -> new IllegalArgumentException("좋아요를 누르지 않았습니다."));
 
         planLikeRepository.delete(existingLike);
+        
+        return plan; // AOP를 위해 Plan 리턴
     }
 }
