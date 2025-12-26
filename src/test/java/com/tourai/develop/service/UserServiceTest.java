@@ -76,7 +76,7 @@ class UserServiceTest {
                 .name("식당").build();
         Tag tag3 = Tag.builder()
                 .tagType(TagType.AVOID)
-                .name("너무 시끄러운").build();
+                .name("피하고싶은").build();
         tagRepository.save(tag1);
         tagRepository.save(tag2);
         tagRepository.save(tag3);

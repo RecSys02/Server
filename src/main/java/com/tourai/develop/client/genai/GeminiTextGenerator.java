@@ -5,6 +5,7 @@ import com.google.genai.types.Content;
 import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.Part;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -12,8 +13,8 @@ public class GeminiTextGenerator implements TextGenerator {
 
     private final Client client;
 
-    public GeminiTextGenerator() {
-        this.client = new Client();
+    public GeminiTextGenerator(@Value("${gemini.api-key}") String apiKey) {
+        this.client = Client.builder().apiKey(apiKey).build();
     }
 
     @Override
