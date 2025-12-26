@@ -98,10 +98,10 @@ class UserLogIntegrationTest {
         // given
         PlanRequestDto requestDto = PlanRequestDto.builder()
                 .userId(testUser.getId())
-                .placeIds(List.of(testPlace1.getId(), testPlace2.getId())) // 실제 생성된 Place ID 사용
+                .placeIds(List.of(testPlace1.getPlaceId(), testPlace2.getPlaceId())) // 실제 생성된 Place ID 사용
                 .tagIds(Collections.emptyList())
                 .name("제주도 여행")
-                .duration(3)
+                .duration(1)
                 .province(Province.JEJU)
                 .isPrivate(false)
                 .build();

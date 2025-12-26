@@ -1,5 +1,7 @@
 package com.tourai.develop.dto;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -10,6 +12,7 @@ public class LogPayload {
 
     @Builder
     @Getter
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class SignUp {
         private String provider;
         private String email;
@@ -19,6 +22,7 @@ public class LogPayload {
 
     @Builder
     @Getter
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class Login {
         private String provider;
         private String clientIp;
@@ -30,6 +34,7 @@ public class LogPayload {
 
     @Builder
     @Getter
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class Logout {
         private LocalDateTime loginAt;
         private Long durationSec;
@@ -38,6 +43,7 @@ public class LogPayload {
 
     @Builder
     @Getter
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class CreatePlan {
         private Long planId;
         private String title;
@@ -49,6 +55,7 @@ public class LogPayload {
 
         @Builder
         @Getter
+        @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
         public static class PlaceInfoLog {
             private Long placeId;
             private String name;
@@ -60,6 +67,7 @@ public class LogPayload {
 
     @Builder
     @Getter
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class LikePlan {
         private Long targetPlanId;
         private Long targetPlanOwnerId;
@@ -68,6 +76,7 @@ public class LogPayload {
 
     @Builder
     @Getter
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class UnlikePlan {
         private Long targetPlanId;
         private Long targetPlanOwnerId;
@@ -76,6 +85,7 @@ public class LogPayload {
 
     @Builder
     @Getter
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class DeletePlan {
         private Long deletedPlanId;
         private String deletedPlanTitle;
