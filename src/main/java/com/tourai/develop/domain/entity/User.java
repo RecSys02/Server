@@ -62,10 +62,6 @@ public class User {
         this.userName = userName;
     }
 
-    public void changeEmail(String email) {
-        this.email = email;
-    }
-
     public void changePassword(String rawPassword, PasswordEncoder passwordEncoder) {
         String encodedPassword = passwordEncoder.encode(rawPassword);
         this.password = encodedPassword;
