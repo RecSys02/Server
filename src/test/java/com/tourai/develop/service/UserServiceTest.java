@@ -52,9 +52,7 @@ class UserServiceTest {
                 .password("abc123456").build();
 
         userRepository.save(user);
-        EditProfileDto dto = EditProfileDto.builder().userName("new박새결")
-                .email("newabc123@naver.com")
-                .password("newabc123456").build();
+        EditProfileDto dto = new EditProfileDto("new박새결", "newabc123456");
 
         userService.editUserInfo(user.getId(), dto);
 
@@ -92,8 +90,7 @@ class UserServiceTest {
 
         user.addTag(tag1);
         userRepository.save(user);
-        EditUserTagsDto dto = EditUserTagsDto.builder()
-                .updateTagIds(tagIds).build();
+        EditUserTagsDto dto = new EditUserTagsDto(tagIds);
 
         userService.editUserTags(user.getId(), dto);
         User findUser = userRepository.findById(user.getId()).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다!"));
