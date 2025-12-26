@@ -5,12 +5,9 @@ import lombok.Getter;
 
 import java.util.List;
 
-@Getter
-@Builder
-public class SignUpDto {
-    private String userName;
-    private String email;
-    private String password;
-    private List<Long> tagIds;
-
-}
+public record SignUpDto(
+        String userName,
+        String email,
+        String password,
+        List<Long> tagIds
+) {}
