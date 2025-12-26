@@ -91,31 +91,6 @@ public class AuthService {
 
     }
 
-    @Transactional
-    public User findOrCreateAndGetUserForOAuth2(String provider, String providerId, String email) {
-
-        String username = provider + "_" + providerId;
-
-        User findUser = userRepository.findByUserName(username).orElse(null);
-
-        if (findUser == null) {
-            //존재하지 않는 경우
-
-            String randomPassword = UUID.randomUUID().toString();
-            String encodedRandomPassword = bCryptPasswordEncoder.encode(randomPassword);
-
-            User user = User.builder()
-                    .userName(username)
-                    .email(email)
-                    .password(encodedRandomPassword)
-                    .build();
-            return userRepository.save(user);
-        }
-        //존재하는 경우
-        return findUser;
-    }
-
-
     private String validateRefreshTokenAndGetUsername(String refreshToken) {
         if (refreshToken == null) {
             throw new AuthException(ErrorCode.REFRESH_TOKEN_NULL);
