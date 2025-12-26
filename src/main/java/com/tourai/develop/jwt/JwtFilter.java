@@ -1,7 +1,12 @@
 package com.tourai.develop.jwt;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tourai.develop.dto.CustomUserDetails;
+import com.tourai.develop.exception.enumType.ErrorCode;
 import com.tourai.develop.service.CustomUserDetailsService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -16,6 +21,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Map;
 
 @Slf4j
 public class JwtFilter extends OncePerRequestFilter {
@@ -23,6 +29,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService customUserDetailsService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public JwtFilter(JwtUtil jwtUtil, CustomUserDetailsService customUserDetailsService) {
         this.jwtUtil = jwtUtil;
@@ -36,32 +43,51 @@ public class JwtFilter extends OncePerRequestFilter {
         String authorization = request.getHeader("Authorization");
 
         if (authorization == null || !authorization.startsWith("Bearer ")) {
-
-            log.info("JwtFilter.doFilterInternal -> 얘 Jwt 토큰 안가지고 있어!!!");
+            log.info("JwtFilter.doFilterInternal -> access 토큰을 가지고 있지 않으므로, 다음 필터단으로 넘김.");
             filterChain.doFilter(request, response);
             return;
         }
 
 
-        String jwtToken = authorization.split(" ")[1];
+        String accessToken = authorization.split(" ")[1];
 
-        if (jwtUtil.isExpired(jwtToken)) {
 
-            log.info("토큰 시간 만료!");
+        try {
+            jwtUtil.parseAndValidate(accessToken);
+            String tokenType = jwtUtil.getTokenType(accessToken);
+            if (!"access".equals(tokenType)) {
+                sendJwtFilterExceptionResponse(response, ErrorCode.AUTH_INVALID);
+                return;
+            }
+
+            String email = jwtUtil.getUsername(accessToken);
+            String role = jwtUtil.getRole(accessToken);
+
+            UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails,
+                    null, userDetails.getAuthorities());
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
             filterChain.doFilter(request, response);
-            return;
+        } catch (ExpiredJwtException e) {
+            SecurityContextHolder.clearContext();
+            sendJwtFilterExceptionResponse(response, ErrorCode.AUTH_EXPIRED);
+        } catch (JwtException | IllegalArgumentException e) {
+            SecurityContextHolder.clearContext();
+            sendJwtFilterExceptionResponse(response, ErrorCode.AUTH_INVALID);
         }
+    }
 
+    private void sendJwtFilterExceptionResponse(HttpServletResponse response, ErrorCode errorCode) throws IOException {
+        if (response.isCommitted()) return;
 
-        String email = jwtUtil.getUsername(jwtToken);
-        String role = jwtUtil.getRole(jwtToken);
+        response.setStatus(errorCode.getStatus().value());
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
 
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails,
-                null, userDetails.getAuthorities());
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        filterChain.doFilter(request, response);
-
+        objectMapper.writeValue(response.getWriter(), Map.of(
+                "code", errorCode.name(),
+                "message", errorCode.getMessage()
+        ));
     }
 }
