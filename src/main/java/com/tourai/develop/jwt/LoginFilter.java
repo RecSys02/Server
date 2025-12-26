@@ -3,12 +3,15 @@ package com.tourai.develop.jwt;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tourai.develop.dto.CustomUserDetails;
 import com.tourai.develop.dto.LoginDto;
+import com.tourai.develop.exception.enumType.ErrorCode;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -29,6 +32,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final JwtUtil jwtUtil;
 
     private final RefreshTokenService refreshTokenService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public LoginFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil, RefreshTokenService refreshTokenService) {
         this.authenticationManager = authenticationManager;
@@ -36,31 +40,29 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         this.refreshTokenService = refreshTokenService;
     }
 
-
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         log.info("LoginFilter.attemptAuthentication 들어왔음!");
-        if (!"/login".equals(request.getRequestURI()) || !"POST".equals(request.getMethod())) {
-            log.info("로그인 요청이 아니므로 LoginFilter를 통과시킵니다.");
-            log.info("METHOD={}, URI={}, QS={}, Referer={}",
-                    request.getMethod(),
-                    request.getRequestURI(),
-                    request.getQueryString(),
-                    request.getHeader("Referer"));
-            return null;
+        if (!"/auth/login".equals(request.getRequestURI())) {
+            throw new AuthenticationServiceException("Login 시도 경로가 맞지 않습니다.");
+        }
+        if (!"POST".equals(request.getMethod())) {
+            throw new AuthenticationServiceException("POST 형식의 메서드 타입이 아닙니다.");
         }
 
         log.info("LoginFilter.attemptAuthentication 진입 - 정상 로그인 시도");
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
             LoginDto loginDto = objectMapper.readValue(request.getInputStream(), LoginDto.class);
-
+            if (loginDto.getEmail() == null || loginDto.getEmail().isBlank()
+                    || loginDto.getPassword() == null || loginDto.getPassword().isBlank()) {
+                throw new AuthenticationServiceException("email,password are required");
+            }
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword(), Collections.emptyList());
 
             return authenticationManager.authenticate(authentication);
 
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new AuthenticationServiceException("Invalid login request body", e);
         }
 
     }
@@ -91,15 +93,37 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         response.setCharacterEncoding("UTF-8");
 
         response.addCookie(jwtUtil.createCookie("refresh", refreshToken, refreshTokenExpiredMs));
-        new ObjectMapper().writeValue(response.getWriter(), Map.of("accessToken", accessToken));
+        objectMapper.writeValue(response.getWriter(), Map.of("accessToken", accessToken));
 
     }
 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
         log.info("LoginFilter.unsuccessfulAuthentication 들어왔음!");
+        ErrorCode errorCode = parseFailureToErrorCode(failed);
+        sendLoginFilterExceptionResponse(response, errorCode);
+    }
 
-        response.setStatus(401);
+    private void sendLoginFilterExceptionResponse(HttpServletResponse response, ErrorCode errorCode) throws IOException {
+        if (response.isCommitted()) return;
+        response.setStatus(errorCode.getStatus().value());
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        objectMapper.writeValue(response.getWriter(), Map.of(
+                "code", errorCode.name(),
+                "message", errorCode.getMessage()
+        ));
+    }
+
+    private ErrorCode parseFailureToErrorCode(AuthenticationException failed) {
+        if (failed instanceof AuthenticationServiceException) {
+            return ErrorCode.AUTH_INVALID_REQUEST;
+        }
+        if (failed instanceof BadCredentialsException) {
+            return ErrorCode.AUTH_LOGIN_FAILED;
+        }
+        return ErrorCode.AUTH_LOGIN_FAILED;
     }
 
 
