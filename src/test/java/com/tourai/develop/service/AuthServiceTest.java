@@ -48,21 +48,15 @@ class AuthServiceTest {
         list.add(tag1.getId());
         list.add(tag2.getId());
 
-        SignUpDto signUpDto = SignUpDto.builder().userName("박새결")
-                .email("a123@naver.com")
-                .password("a123456789")
-                .tagIds(list)
-                .build();
+        SignUpDto signUpDto = new SignUpDto("박새결", "a123@naver.com", "a123456789", list);
 
 
         authService.signUp(signUpDto);
 
-        User savedUser = userRepository.findByEmail(signUpDto.getEmail()).orElseThrow(() -> new IllegalArgumentException("해당 email을 가진 user가 존재하지 않습니다!"));
-        assertEquals(signUpDto.getUserName(), savedUser.getUserName());
+        User savedUser = userRepository.findByEmail(signUpDto.email()).orElseThrow(() -> new IllegalArgumentException("해당 email을 가진 user가 존재하지 않습니다!"));
+        assertEquals(signUpDto.userName(), savedUser.getUserName());
         assertEquals(2, savedUser.getUserTags().size());
     }
-
-
 
 
 }
