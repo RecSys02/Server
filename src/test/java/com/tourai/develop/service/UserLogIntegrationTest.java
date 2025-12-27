@@ -7,6 +7,7 @@ import com.tourai.develop.domain.entity.UserLog;
 import com.tourai.develop.domain.enumType.Action;
 import com.tourai.develop.domain.enumType.Category;
 import com.tourai.develop.domain.enumType.Province;
+import com.tourai.develop.dto.SignUpDto;
 import com.tourai.develop.dto.request.PlanRequestDto;
 import com.tourai.develop.repository.PlaceRepository;
 import com.tourai.develop.repository.UserLogRepository;
@@ -34,6 +35,9 @@ class UserLogIntegrationTest {
 
     @Autowired
     private PlanService planService;
+
+    @Autowired
+    private AuthService authService;
 
     @Autowired
     private UserLogRepository userLogRepository;
@@ -111,9 +115,12 @@ class UserLogIntegrationTest {
 
         // then
         List<UserLog> logs = userLogRepository.findAll();
-        assertThat(logs).hasSize(1);
+        // 다른 테스트나 초기 데이터로 인해 로그가 더 있을 수 있으므로 필터링하거나 마지막 로그 확인
+        UserLog log = logs.stream()
+                .filter(l -> l.getAction() == Action.CREATE_PLAN && l.getUser().getId().equals(testUser.getId()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("CREATE_PLAN log not found"));
 
-        UserLog log = logs.get(0);
         assertThat(log.getUser().getId()).isEqualTo(testUser.getId());
         assertThat(log.getAction()).isEqualTo(Action.CREATE_PLAN);
 
@@ -124,5 +131,58 @@ class UserLogIntegrationTest {
         assertThat(metadata).containsKey("client_ip"); // 공통 필드 확인
         
         System.out.println("Saved Metadata: " + metadata);
+    }
+
+    @Test
+    @DisplayName("회원가입 시 UserLog가 저장되어야 한다")
+    void signUp_ShouldCreateUserLog() {
+        // given
+        SignUpDto signUpDto = new SignUpDto("newuser@example.com", "newuser@example.com", "password123", null);
+
+        // when
+        User newUser = authService.signUp(signUpDto);
+
+        // then
+        List<UserLog> logs = userLogRepository.findAll();
+        UserLog log = logs.stream()
+                .filter(l -> l.getAction() == Action.SIGN_UP && l.getUser().getId().equals(newUser.getId()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("SIGN_UP log not found"));
+
+        assertThat(log.getUser().getEmail()).isEqualTo("newuser@example.com");
+        assertThat(log.getMetadata()).containsEntry("provider", "UNKNOWN"); // 일반 회원가입은 provider가 null -> UNKNOWN 처리됨
+    }
+
+    @Test
+    @DisplayName("로그인 성공 처리 시 UserLog가 저장되어야 한다")
+    void loginSuccess_ShouldCreateUserLog() {
+        // when
+        authService.onLoginSuccess(testUser);
+
+        // then
+        List<UserLog> logs = userLogRepository.findAll();
+        UserLog log = logs.stream()
+                .filter(l -> l.getAction() == Action.LOGIN && l.getUser().getId().equals(testUser.getId()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("LOGIN log not found"));
+
+        assertThat(log.getMetadata()).containsEntry("provider", "EMAIL"); // 기본값 EMAIL
+        assertThat(log.getMetadata()).containsEntry("is_success", true);
+    }
+
+    @Test
+    @DisplayName("로그아웃 성공 처리 시 UserLog가 저장되어야 한다")
+    void logoutSuccess_ShouldCreateUserLog() {
+        // when
+        authService.onLogoutSuccess(testUser);
+
+        // then
+        List<UserLog> logs = userLogRepository.findAll();
+        UserLog log = logs.stream()
+                .filter(l -> l.getAction() == Action.LOGOUT && l.getUser().getId().equals(testUser.getId()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("LOGOUT log not found"));
+
+        assertThat(log.getUser().getId()).isEqualTo(testUser.getId());
     }
 }

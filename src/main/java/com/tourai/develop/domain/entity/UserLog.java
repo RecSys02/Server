@@ -17,7 +17,7 @@ import java.util.Map;
 @Builder
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "user_log")
+@Table(name = "users_log")
 public class UserLog {
 
     @Id

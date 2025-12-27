@@ -1,9 +1,12 @@
 package com.tourai.develop.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tourai.develop.domain.entity.User;
 import com.tourai.develop.dto.CustomUserDetails;
 import com.tourai.develop.dto.LoginDto;
 import com.tourai.develop.exception.enumType.ErrorCode;
+import com.tourai.develop.repository.UserRepository;
+import com.tourai.develop.service.AuthService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,6 +27,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
@@ -32,12 +36,16 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final JwtUtil jwtUtil;
 
     private final RefreshTokenService refreshTokenService;
+    private final AuthService authService;
+    private final UserRepository userRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public LoginFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil, RefreshTokenService refreshTokenService) {
+    public LoginFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil, RefreshTokenService refreshTokenService, AuthService authService, UserRepository userRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.refreshTokenService = refreshTokenService;
+        this.authService = authService;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -87,6 +95,14 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String refreshToken = jwtUtil.createJwt("refresh", username, role, refreshTokenExpiredMs);
 
         refreshTokenService.save(username, refreshToken, Duration.ofMillis(refreshTokenExpiredMs));
+
+        // 로그인 로그 남기기 (AuthService를 통해 AOP 적용)
+        Optional<User> userOptional = userRepository.findByEmail(username);
+        if (userOptional.isPresent()) {
+            authService.onLoginSuccess(userOptional.get());
+        } else {
+            log.warn("Login successful but user not found in DB for logging: {}", username);
+        }
 
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("application/json");

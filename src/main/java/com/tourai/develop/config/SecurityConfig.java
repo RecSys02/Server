@@ -1,8 +1,11 @@
 package com.tourai.develop.config;
 
 import com.tourai.develop.jwt.*;
+import com.tourai.develop.oauth2.CustomLogoutSuccessHandler;
 import com.tourai.develop.oauth2.CustomOAuth2UserService;
 import com.tourai.develop.oauth2.CustomSuccessHandler;
+import com.tourai.develop.repository.UserRepository;
+import com.tourai.develop.service.AuthService;
 import com.tourai.develop.service.CustomUserDetailsService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +30,9 @@ public class SecurityConfig {
     private final RefreshTokenService refreshTokenService;
     private final RedisLogoutHandler redisLogoutHandler;
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final AuthService authService;
+    private final UserRepository userRepository;
+    private final CustomLogoutSuccessHandler customLogoutSuccessHandler;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -54,12 +60,12 @@ public class SecurityConfig {
                                 "/auth/reissue", "/oauth2/**",
                                 "/login/oauth2/**",
                                 "/error").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().authenticated());
 
 
-        LoginFilter loginFilter = new LoginFilter(authenticationManager, jwtUtil, refreshTokenService);
+        LoginFilter loginFilter = new LoginFilter(authenticationManager, jwtUtil, refreshTokenService, authService, userRepository);
         loginFilter.setPostOnly(true);
         loginFilter.setFilterProcessesUrl("/auth/login");
 
@@ -86,9 +92,7 @@ public class SecurityConfig {
         httpSecurity.logout((logout) -> logout
                 .logoutUrl("/auth/logout")
                 .addLogoutHandler(redisLogoutHandler)
-                .logoutSuccessHandler((request, response, authentication) -> {
-                    response.setStatus(HttpServletResponse.SC_OK);
-                })
+                .logoutSuccessHandler(customLogoutSuccessHandler)
         );
 
         httpSecurity.exceptionHandling(e -> e

@@ -1,5 +1,6 @@
 package com.tourai.develop.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Builder;
@@ -28,7 +29,10 @@ public class LogPayload {
         private String clientIp;
         private String deviceModel;
         private String osVersion;
+        
+        @JsonProperty("is_success") // Jackson이 isSuccess라는 필드명을 success로 변환하기 때문에 명시
         private boolean isSuccess;
+        
         private String failReason;
     }
 
@@ -48,7 +52,10 @@ public class LogPayload {
         private Long planId;
         private String title;
         private String region;
+        
+        @JsonProperty("is_private")
         private boolean isPrivate;
+
         private int totalDays;
         private int placeCount;
         private List<PlaceInfoLog> places;

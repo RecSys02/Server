@@ -11,7 +11,9 @@ import com.tourai.develop.dto.PlaceItem;
 import com.tourai.develop.repository.UserLogRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -28,7 +30,7 @@ public class UserLogService {
     private final UserLogRepository userLogRepository;
     private final ObjectMapper objectMapper;
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logAction(User user, Action action, Object payload) {
         Map<String, Object> metadata = new HashMap<>();
 
@@ -80,7 +82,7 @@ public class UserLogService {
     }
 
     // --- 편의 메서드들 ---
-
+    @Async
     public void logSignUp(User user, String provider) {
         LogPayload.SignUp payload = LogPayload.SignUp.builder()
                 .provider(provider)
@@ -90,6 +92,7 @@ public class UserLogService {
         logAction(user, Action.SIGN_UP, payload);
     }
 
+    @Async
     public void logLogin(User user, String provider, boolean isSuccess, String failReason) {
         LogPayload.Login payload = LogPayload.Login.builder()
                 .provider(provider)
@@ -99,6 +102,15 @@ public class UserLogService {
         logAction(user, Action.LOGIN, payload);
     }
 
+    @Async
+    public void logLogout(User user) {
+        // 로그아웃은 특별한 페이로드가 없을 수 있음. 필요시 추가
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("message", "User logged out");
+        logAction(user, Action.LOGOUT, payload);
+    }
+
+    @Async
     public void logCreatePlan(User user, Plan plan) {
         List<LogPayload.CreatePlan.PlaceInfoLog> placeLogs = new ArrayList<>();
         int placeCount = 0;
@@ -135,6 +147,7 @@ public class UserLogService {
         logAction(user, Action.CREATE_PLAN, payload);
     }
 
+    @Async
     public void logDeletePlan(User user, Plan plan) {
         int placeCount = 0;
         if (plan.getSchedule() != null) {
@@ -152,7 +165,8 @@ public class UserLogService {
 
         logAction(user, Action.DELETE_PLAN, payload);
     }
-    
+
+    @Async
     public void logLikePlan(User user, Plan targetPlan) {
         LogPayload.LikePlan payload = LogPayload.LikePlan.builder()
                 .targetPlanId(targetPlan.getId())
@@ -163,6 +177,7 @@ public class UserLogService {
         logAction(user, Action.LIKE_PLAN, payload);
     }
 
+    @Async
     public void logUnlikePlan(User user, Plan targetPlan) {
         LogPayload.UnlikePlan payload = LogPayload.UnlikePlan.builder()
                 .targetPlanId(targetPlan.getId())
