@@ -5,6 +5,7 @@ import com.tourai.develop.domain.enumType.Category;
 import com.tourai.develop.domain.enumType.Province;
 import com.tourai.develop.dto.PlaceInfo;
 import com.tourai.develop.repository.PlaceRepository;
+import com.tourai.develop.dto.response.PlaceResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,12 @@ import java.util.stream.Collectors;
 public class PlaceService {
 
     private final PlaceRepository placeRepository;
+
+    public PlaceResponseDto getPlaceDetail(Long placeId, Category category, Province province) {
+        Place place = placeRepository.findByPlaceIdAndCategoryAndProvince(placeId, category, province)
+                .orElseThrow(() -> new IllegalArgumentException("Place not found with id: " + placeId + ", category: " + category + ", province: " + province));
+        return PlaceResponseDto.from(place);
+    }
 
     /**
      * 내부 데이터 동기화 메서드
