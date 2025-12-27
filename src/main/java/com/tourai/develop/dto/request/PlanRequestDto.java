@@ -1,6 +1,7 @@
 package com.tourai.develop.dto.request;
 
 import com.tourai.develop.domain.enumType.Province;
+import com.tourai.develop.dto.SelectedPlaceDto;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
@@ -13,7 +14,7 @@ public record PlanRequestDto(
         Long userId,
 
         @NotNull(message = "최소 하나 이상의 장소를 선택하여야 합니다.")
-        List<Long> placeIds,
+        List<SelectedPlaceDto> selectedPlaces,
 
         @NotNull(message = "태그가 선택되지 않았습니다.")
         List<Long> tagIds,

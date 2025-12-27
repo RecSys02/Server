@@ -2,6 +2,7 @@ package com.tourai.develop.dto;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.tourai.develop.domain.enumType.Category;
 import com.tourai.develop.domain.enumType.Province;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,5 +18,6 @@ public class PlaceItem {
     private String time;
     private Long PlaceId;
     private Province province;
+    private Category category;
     private String PlaceName;
 }
