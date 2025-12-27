@@ -104,9 +104,11 @@ public class UserLogService {
 
     @Async
     public void logLogout(User user) {
-        // 로그아웃은 특별한 페이로드가 없을 수 있음. 필요시 추가
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("message", "User logged out");
+        LogPayload.Logout payload = LogPayload.Logout.builder()
+                .loginAt(null) // 추후 로그인 시간 추적 기능 구현 시 추가
+                .durationSec(null) // 추후 세션 지속 시간 계산 기능 구현 시 추가
+                .trigger("user_request") // 기본값 설정
+                .build();
         logAction(user, Action.LOGOUT, payload);
     }
 
@@ -125,7 +127,7 @@ public class UserLogService {
                         placeLogs.add(LogPayload.CreatePlan.PlaceInfoLog.builder()
                                 .placeId(item.getPlaceId())
                                 .name(item.getPlaceName())
-                                .category(null) // PlaceItem에 category가 없음
+                                .category(item.getCategory() != null ? item.getCategory().name() : null)
                                 .day(day)
                                 .order(i + 1)
                                 .build());
