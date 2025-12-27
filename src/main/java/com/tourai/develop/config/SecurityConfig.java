@@ -60,7 +60,7 @@ public class SecurityConfig {
                                 "/auth/reissue", "/oauth2/**",
                                 "/login/oauth2/**",
                                 "/error").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().authenticated());
 
