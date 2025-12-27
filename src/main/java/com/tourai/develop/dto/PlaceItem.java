@@ -16,8 +16,8 @@ import lombok.Setter;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class PlaceItem {
     private String time;
-    private Long PlaceId;
+    private Long placeId;
     private Province province;
     private Category category;
-    private String PlaceName;
+    private String placeName;
 }

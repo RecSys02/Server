@@ -38,7 +38,7 @@ public class PlanAiService {
     public String makePromptFromPlaces(List<SelectedPlaceDto> selectedPlaces, Integer duration) {
 
         List<Place> places = new ArrayList<>();
-        for (SelectedPlaceDto dto : selectedPlaces) {
+        for (SelectedPlaceDto dto : selectedPlaces) { //TODO: 쿼리 최적화 필요
             placeRepository.findByPlaceIdAndCategoryAndProvince(dto.placeId(), dto.category(), dto.province())
                     .ifPresent(places::add);
         }
@@ -52,7 +52,7 @@ public class PlanAiService {
         for (int i = 0; i < size; i++) {
             Place place = places.get(i);
 
-            sb1.append(place.getName()).append("(여행지 place_id: ").append(i).append(", province: ").append(place.getProvince()).append(", category: ").append(place.getCategory()).append(", 소요시간: ").append(place.getDuration()).append(")").append(", ");
+            sb1.append(place.getName()).append("(여행지 place_id: ").append(place.getPlaceId()).append(", province: ").append(place.getProvince()).append(", category: ").append(place.getCategory()).append(", 소요시간: ").append(place.getDuration()).append(")").append(", ");
             sb2.append(place.getName()).append(" 여행지 설명: ").append(place.getDescription()).append("\n");
 
         }
