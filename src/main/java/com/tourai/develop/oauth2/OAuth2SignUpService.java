@@ -1,6 +1,8 @@
 package com.tourai.develop.oauth2;
 
+import com.tourai.develop.aop.annotation.UserActionLog;
 import com.tourai.develop.domain.entity.User;
+import com.tourai.develop.domain.enumType.Action;
 import com.tourai.develop.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -18,6 +20,7 @@ public class OAuth2SignUpService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Transactional
+    @UserActionLog(action = Action.SIGN_UP)
     public User signUp(String provider, String providerId, String email) {
         String username = provider + "_" + providerId;
 

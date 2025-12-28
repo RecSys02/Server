@@ -1,7 +1,9 @@
 package com.tourai.develop.service;
 
+import com.tourai.develop.aop.annotation.UserActionLog;
 import com.tourai.develop.domain.entity.Tag;
 import com.tourai.develop.domain.entity.User;
+import com.tourai.develop.domain.enumType.Action;
 import com.tourai.develop.dto.ReissueDto;
 import com.tourai.develop.dto.SignUpDto;
 import com.tourai.develop.exception.*;
@@ -40,7 +42,8 @@ public class AuthService {
     public final static Long refreshTokenExpiredMs = 864 * 100000L;
 
     @Transactional
-    public void signUp(SignUpDto signUpDto) {
+    @UserActionLog(action = Action.SIGN_UP)
+    public User signUp(SignUpDto signUpDto) {
 
         //이메일 중복 확인
         if (userRepository.existsByEmail(signUpDto.email())) {
@@ -69,7 +72,7 @@ public class AuthService {
             }
         }
 
-        userRepository.save(user);
+        return userRepository.save(user);
 
     }
 
@@ -135,5 +138,14 @@ public class AuthService {
         }
     }
 
+    @UserActionLog(action = Action.LOGIN)
+    public void onLoginSuccess(User user) {
+        // 로그인 성공 후 추가 로직이 필요하다면 여기에 작성
+    }
+
+    @UserActionLog(action = Action.LOGOUT)
+    public void onLogoutSuccess(User user) {
+        // 로그아웃 성공 후 추가 로직이 필요하다면 여기에 작성
+    }
 
 }

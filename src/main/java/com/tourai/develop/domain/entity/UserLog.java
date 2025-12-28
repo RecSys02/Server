@@ -3,10 +3,13 @@ package com.tourai.develop.domain.entity;
 import com.tourai.develop.domain.enumType.Action;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Immutable;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -14,7 +17,7 @@ import java.time.LocalDateTime;
 @Builder
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "user_log")
+@Table(name = "users_log")
 public class UserLog {
 
     @Id
@@ -29,9 +32,11 @@ public class UserLog {
     @Column(name = "action", nullable = false)
     private Action action;
 
-    @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "metadata", columnDefinition = "jsonb")
+    private Map<String, Object> metadata;
 
+    @CreatedDate
     @Column(name = "timestamp", nullable = false, updatable = false)
     private LocalDateTime timestamp;
 
