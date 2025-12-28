@@ -60,9 +60,9 @@ public class PlanService {
 
     @UserActionLog(action = Action.CREATE_PLAN)
     @Transactional
-    public Plan savePlan(PlanRequestDto planRequestDto) {
-        User findUser = userRepository.findById(planRequestDto.userId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 userId 입니다!"));
+    public Plan savePlan(PlanRequestDto planRequestDto, String email) {
+        User findUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다: " + email));
 
         // 스케줄 생성
         Map<String, List<PlaceItem>> schedule = planAiService.createSchedule(planRequestDto.selectedPlaces(), planRequestDto.duration());

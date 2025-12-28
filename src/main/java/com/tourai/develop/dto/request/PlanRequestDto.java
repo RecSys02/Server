@@ -10,9 +10,6 @@ import java.util.List;
 
 @Builder
 public record PlanRequestDto(
-        @NotNull(message = "사용자 ID는 필수입니다.")
-        Long userId,
-
         @NotNull(message = "최소 하나 이상의 장소를 선택하여야 합니다.")
         List<SelectedPlaceDto> selectedPlaces,
 
