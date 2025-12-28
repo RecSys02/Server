@@ -26,8 +26,10 @@ public class PlanController {
 
     @PostMapping
     @Operation(summary = "Plan 생성", description = "생성형 AI를 이용해 새로운 여행 계획을 생성합니다.")
-    public ResponseEntity<Void> createPlan(@RequestBody @Valid PlanRequestDto planRequestDto) {
-        planService.savePlan(planRequestDto);
+    public ResponseEntity<Void> createPlan(
+            @RequestBody @Valid PlanRequestDto planRequestDto,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        planService.savePlan(planRequestDto, userDetails.getUsername());
         return ResponseEntity.ok().build();
     }
 
