@@ -1,9 +1,11 @@
 package com.tourai.develop.domain.enumType;
 
 public enum Action {
+    SIGN_UP,
     LOGIN,
+    LOGOUT,
     CREATE_PLAN,
-    SELECT_PLACE,
-    VIEW,
-    CLICK
+    LIKE_PLAN,
+    UNLIKE_PLAN,
+    DELETE_PLAN
 }
