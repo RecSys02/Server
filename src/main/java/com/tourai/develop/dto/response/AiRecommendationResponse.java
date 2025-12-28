@@ -20,7 +20,7 @@ public record AiRecommendationResponse(
     ) {
     }
 
-
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public record RecommendedItem(
             Category category,
             Province province,
