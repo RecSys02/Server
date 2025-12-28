@@ -3,7 +3,7 @@ package com.tourai.develop.service;
 import com.tourai.develop.aop.annotation.UserActionLog;
 import com.tourai.develop.domain.entity.*;
 import com.tourai.develop.domain.enumType.Action;
-import com.tourai.develop.dto.PlaceItem;
+import com.tourai.develop.dto.DailySchedule;
 import com.tourai.develop.dto.request.PlanRequestDto;
 import com.tourai.develop.dto.response.PlanResponseDto;
 import com.tourai.develop.repository.PlanLikeRepository;
@@ -14,8 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -64,8 +64,14 @@ public class PlanService {
         User findUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다: " + email));
 
+        // 여행 기간 계산 (종료일 - 시작일 + 1)
+        long duration = ChronoUnit.DAYS.between(planRequestDto.startDate(), planRequestDto.endDate()) + 1;
+        if (duration < 1) {
+            throw new IllegalArgumentException("종료 날짜는 시작 날짜보다 같거나 이후여야 합니다.");
+        }
+
         // 스케줄 생성
-        Map<String, List<PlaceItem>> schedule = planAiService.createSchedule(planRequestDto.selectedPlaces(), planRequestDto.duration());
+        List<DailySchedule> schedule = planAiService.createSchedule(planRequestDto.selectedPlaces(), planRequestDto.startDate(), (int) duration);
 
         // plan 생성
         Plan plan = Plan.builder()

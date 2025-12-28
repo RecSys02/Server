@@ -1,12 +1,11 @@
 package com.tourai.develop.dto.response;
 
 import com.tourai.develop.domain.entity.Plan;
-import com.tourai.develop.dto.PlaceItem;
+import com.tourai.develop.dto.DailySchedule;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Builder
@@ -17,7 +16,7 @@ public record PlanResponseDto(
         String name,
         Boolean isPrivate,
         Integer likeCount,
-        Map<String, List<PlaceItem>> schedule,
+        List<DailySchedule> schedule,
         List<String> tags,
         LocalDateTime createdAt,
         LocalDateTime updatedAt

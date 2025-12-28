@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgres:16
+    platform: linux/amd64
     container_name: postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -18,20 +19,32 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: tourai-server:latest
+    platform: linux/amd64
     container_name: api
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_DATA_REDIS_HOST=redis
+      - AI_BASE_URL=${AI_BASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
+      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     ports:
       - "8080:8080"
     depends_on:
       - postgres
+      - redis
     networks:
       - tourai_backend
 
   mailhog:
     image: mailhog/mailhog:latest
+    platform: linux/amd64
     container_name: mailhog
     restart: always
     ports:
@@ -42,6 +55,7 @@ services:
 
   redis:
     image: redis:7-alpine
+    platform: linux/amd64
     container_name: redis
     restart: unless-stopped
     ports:

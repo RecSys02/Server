@@ -1,6 +1,6 @@
 package com.tourai.develop.domain.entity;
 
-import com.tourai.develop.dto.PlaceItem;
+import com.tourai.develop.dto.DailySchedule;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Formula;
@@ -12,9 +12,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -40,7 +38,7 @@ public class Plan {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "schedule", columnDefinition = "jsonb")
     @Builder.Default
-    private Map<String, List<PlaceItem>> schedule = new HashMap<>();
+    private List<DailySchedule> schedule = new ArrayList<>();
 
 
     @Column(name = "name", nullable = false, length = 100)

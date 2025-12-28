@@ -6,6 +6,7 @@ import com.tourai.develop.domain.entity.User;
 import com.tourai.develop.domain.entity.UserTag;
 import com.tourai.develop.domain.enumType.Category;
 import com.tourai.develop.domain.enumType.TagType;
+import com.tourai.develop.dto.AiSelectedPlaceDto;
 import com.tourai.develop.dto.SelectedPlaceDto;
 import com.tourai.develop.dto.request.RecommendationRequestDto;
 import com.tourai.develop.dto.request.AiRecommendationRequest;
@@ -45,11 +46,13 @@ public class RecommendationService {
         List<UserTag> userTags = user.getUserTags();
 
         activityLevel = insertUserTagData(preferredThemes, preferredMoods, preferredRestaurantTypes, preferredCafeTypes, avoid, activityLevel, userTags);
-
         List<SelectedPlaceDto> historyPlaces =
                 (recommendationRequestDto.historyPlaces() == null) ? Collections.emptyList() : recommendationRequestDto.historyPlaces();
         List<SelectedPlaceDto> selectedPlaces =
                 (recommendationRequestDto.selectedPlaces() == null) ? Collections.emptyList() : recommendationRequestDto.selectedPlaces();
+        List<AiSelectedPlaceDto> aiHistoryPlaces = toAiSelectedPlaces(historyPlaces);
+        List<AiSelectedPlaceDto> aiSelectedPlaces = toAiSelectedPlaces(selectedPlaces);
+
 
         AiRecommendationRequest aiRecommendationRequest = new AiRecommendationRequest(
                 userId,
@@ -62,8 +65,8 @@ public class RecommendationService {
                 recommendationRequestDto.region(),
                 recommendationRequestDto.companion(),
                 recommendationRequestDto.budget(),
-                historyPlaces,
-                selectedPlaces
+                aiHistoryPlaces,
+                aiSelectedPlaces
         );
         AiRecommendationResponse aiRecommendationResponse = fastApiClient.requestRecommendation(aiRecommendationRequest);
         return convertToFrontResponse(aiRecommendationResponse);
@@ -140,5 +143,13 @@ public class RecommendationService {
                 findPlace.getCategory(), findPlace.getProvince()
         );
         return recommendedPlaceDto;
+    }
+
+    private List<AiSelectedPlaceDto> toAiSelectedPlaces(List<SelectedPlaceDto> places) {
+        if (places == null || places.isEmpty()) return Collections.emptyList();
+        return places.stream()
+                .filter(Objects::nonNull)
+                .map(p -> new AiSelectedPlaceDto(p.placeId(), p.category(), p.province()))
+                .toList();
     }
 }
