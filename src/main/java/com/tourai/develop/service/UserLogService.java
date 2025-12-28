@@ -6,6 +6,7 @@ import com.tourai.develop.domain.entity.Plan;
 import com.tourai.develop.domain.entity.User;
 import com.tourai.develop.domain.entity.UserLog;
 import com.tourai.develop.domain.enumType.Action;
+import com.tourai.develop.dto.DailySchedule;
 import com.tourai.develop.dto.LogPayload;
 import com.tourai.develop.dto.PlaceItem;
 import com.tourai.develop.repository.UserLogRepository;
@@ -118,22 +119,23 @@ public class UserLogService {
         int placeCount = 0;
 
         if (plan.getSchedule() != null) {
-            for (Map.Entry<String, List<PlaceItem>> entry : plan.getSchedule().entrySet()) {
-                int day = Integer.parseInt(entry.getKey());
-                List<PlaceItem> items = entry.getValue();
+            int dayCounter = 1;
+            for (DailySchedule dailySchedule : plan.getSchedule()) {
+                List<PlaceItem> items = dailySchedule.getActivities();
                 if (items != null) {
                     for (int i = 0; i < items.size(); i++) {
                         PlaceItem item = items.get(i);
                         placeLogs.add(LogPayload.CreatePlan.PlaceInfoLog.builder()
                                 .placeId(item.getPlaceId())
-                                .name(item.getPlaceName())
+                                .name(item.getName())
                                 .category(item.getCategory() != null ? item.getCategory().name() : null)
-                                .day(day)
+                                .day(dayCounter)
                                 .order(i + 1)
                                 .build());
                         placeCount++;
                     }
                 }
+                dayCounter++;
             }
         }
 
@@ -153,8 +155,10 @@ public class UserLogService {
     public void logDeletePlan(User user, Plan plan) {
         int placeCount = 0;
         if (plan.getSchedule() != null) {
-            for (List<PlaceItem> items : plan.getSchedule().values()) {
-                if (items != null) placeCount += items.size();
+            for (DailySchedule dailySchedule : plan.getSchedule()) {
+                if (dailySchedule.getActivities() != null) {
+                    placeCount += dailySchedule.getActivities().size();
+                }
             }
         }
 
