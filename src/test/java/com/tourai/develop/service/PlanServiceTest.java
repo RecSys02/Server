@@ -7,6 +7,7 @@ import com.tourai.develop.domain.entity.User;
 import com.tourai.develop.domain.enumType.Category;
 import com.tourai.develop.domain.enumType.Province;
 import com.tourai.develop.domain.enumType.TagType;
+import com.tourai.develop.dto.DailySchedule;
 import com.tourai.develop.dto.PlaceItem;
 import com.tourai.develop.dto.SelectedPlaceDto;
 import com.tourai.develop.dto.request.PlanRequestDto;
@@ -22,6 +23,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -107,56 +109,60 @@ public class PlanServiceTest {
                 new SelectedPlaceDto(99992L, Category.TOURSPOT, Province.SEOUL)
         );
         Integer duration = 1;
+        LocalDate startDate = LocalDate.of(2026, 1, 2);
 
-        System.out.println(planAiService.makePromptFromPlaces(selectedPlaces, duration));
+        System.out.println(planAiService.makePromptFromPlaces(selectedPlaces, startDate, duration));
     }
 
     @Test
-    void convertMapFromStringTest() {
+    void convertListFromStringTest() {
         String jsonString = """
-                {
-                  "1": [
+                [
                     {
-                      "time": "12:00-13:00",
-                      "place_id": 1,
-                      "province": "SEOUL",
-                      "category": "TOURSPOT",
-                      "place_name": "place 1"
+                      "date": "2026-01-02",
+                      "activities": [
+                        {
+                          "name": "성수 카페",
+                          "place_id": 1,
+                          "category": "CAFE",
+                          "province": "SEOUL",
+                          "start_time": "09:30",
+                          "end_time": "11:00"
+                        },
+                        {
+                          "name": "성수 음식점",
+                          "place_id": 2,
+                          "category": "RESTAURANT",
+                          "province": "SEOUL",
+                          "start_time": "12:30",
+                          "end_time": "14:00"
+                        }
+                      ]
                     },
                     {
-                      "time": "14:00-15:00",
-                      "place_id": 2,
-                      "province": "SEOUL",
-                      "category": "TOURSPOT",
-                      "place_name": "place 2"
-                    },
-                    {
-                      "time": "17:00-18:00",
-                      "place_id": 3,
-                      "province": "SEOUL",
-                      "category": "TOURSPOT",
-                      "place_name": "place 3"
-                    }
-                  ],
-                  "2": [
-                    {
-                      "time": "10:00-11:00",
-                      "place_id": 4,
-                      "province": "SEOUL",
-                      "category": "TOURSPOT",
-                      "place_name": "place 4"
-                    },
-                    {
-                      "time": "11:00-13:00",
-                      "place_id": 5,
-                      "province": "SEOUL",
-                      "category": "TOURSPOT",
-                      "place_name": "place 5"
+                      "date": "2026-01-03",
+                      "activities": [
+                        {
+                          "name": "성수 팝업스토어",
+                          "place_id": 3,
+                          "category": "TOURSPOT",
+                          "province": "SEOUL",
+                          "start_time": "09:30",
+                          "end_time": "11:00"
+                        },
+                        {
+                          "name": "성수 음식점",
+                          "place_id": 4,
+                          "category": "RESTAURANT",
+                          "province": "SEOUL",
+                          "start_time": "12:30",
+                          "end_time": "14:00"
+                        }
+                      ]
                     }
                   ]
-                }
                 """;
-        Assertions.assertThat(planAiService.convertMapFromString(jsonString)).isInstanceOf(Map.class);
+        Assertions.assertThat(planAiService.convertListFromString(jsonString)).isInstanceOf(List.class);
     }
 
     @Test
@@ -186,11 +192,13 @@ public class PlanServiceTest {
                 new SelectedPlaceDto(99992L, Category.TOURSPOT, Province.SEOUL)
         );
         Integer duration = 1;
+        LocalDate startDate = LocalDate.of(2026, 1, 2);
 
-        Map<String, List<PlaceItem>> stringListMap = planAiService.createSchedule(selectedPlaces, duration);
-        stringListMap.forEach((key, value) -> {
-            Assertions.assertThat(key).isEqualTo("1");
-            value.forEach(item -> Assertions.assertThat(item).isInstanceOf(PlaceItem.class));
+        List<DailySchedule> schedule = planAiService.createSchedule(selectedPlaces, startDate, duration);
+        Assertions.assertThat(schedule).isNotEmpty();
+        schedule.forEach(dailySchedule -> {
+            Assertions.assertThat(dailySchedule.getActivities()).isNotEmpty();
+            dailySchedule.getActivities().forEach(item -> Assertions.assertThat(item).isInstanceOf(PlaceItem.class));
         });
     }
 
@@ -249,16 +257,16 @@ public class PlanServiceTest {
 
         // Plan
         PlanRequestDto dto = PlanRequestDto.builder()
-                .userId(user.getId())
                 .name("Plan1")
-                .duration(1)
+                .startDate(LocalDate.of(2026, 1, 2))
+                .endDate(LocalDate.of(2026, 1, 2))
                 .selectedPlaces(selectedPlaces)
                 .tagIds(tagIds)
                 .province(Province.SEOUL)
                 .isPrivate(true)
                 .build();
 
-        planService.savePlan(dto);
+        planService.savePlan(dto, user.getEmail());
 
         List<Plan> plans = planRepository.findAll();
         Plan savedPlan = plans.stream()
