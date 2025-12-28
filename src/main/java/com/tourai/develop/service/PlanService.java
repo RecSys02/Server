@@ -65,7 +65,7 @@ public class PlanService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 userId 입니다!"));
 
         // 스케줄 생성
-        Map<String, List<PlaceItem>> schedule = planAiService.createSchedule(planRequestDto.placeIds(), planRequestDto.duration());
+        Map<String, List<PlaceItem>> schedule = planAiService.createSchedule(planRequestDto.selectedPlaces(), planRequestDto.duration());
 
         // plan 생성
         Plan plan = Plan.builder()

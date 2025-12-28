@@ -8,6 +8,7 @@ import com.tourai.develop.domain.enumType.Category;
 import com.tourai.develop.domain.enumType.Province;
 import com.tourai.develop.domain.enumType.TagType;
 import com.tourai.develop.dto.PlaceItem;
+import com.tourai.develop.dto.SelectedPlaceDto;
 import com.tourai.develop.dto.request.PlanRequestDto;
 import com.tourai.develop.repository.PlaceRepository;
 import com.tourai.develop.repository.PlanRepository;
@@ -18,6 +19,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
@@ -81,7 +83,7 @@ public class PlanServiceTest {
     void promptTest() {
 
         Place place1 = Place.builder()
-                .placeId(1L)
+                .placeId(99991L)
                 .name("Place1")
                 .province(Province.SEOUL)
                 .address("address")
@@ -91,7 +93,7 @@ public class PlanServiceTest {
         placeRepository.save(place1);
 
         Place place2 = Place.builder()
-                .placeId(2L)
+                .placeId(99992L)
                 .name("Place2")
                 .province(Province.SEOUL)
                 .address("address")
@@ -100,10 +102,13 @@ public class PlanServiceTest {
                 .build();
         placeRepository.save(place2);
 
-        List<Long> placeIds = Arrays.asList(1L, 2L);
+        List<SelectedPlaceDto> selectedPlaces = Arrays.asList(
+                new SelectedPlaceDto(99991L, Category.TOURSPOT, Province.SEOUL),
+                new SelectedPlaceDto(99992L, Category.TOURSPOT, Province.SEOUL)
+        );
         Integer duration = 1;
 
-        System.out.println(planAiService.makePromptFromPlaces(placeIds, duration));
+        System.out.println(planAiService.makePromptFromPlaces(selectedPlaces, duration));
     }
 
     @Test
@@ -115,18 +120,21 @@ public class PlanServiceTest {
                       "time": "12:00-13:00",
                       "place_id": 1,
                       "province": "SEOUL",
+                      "category": "TOURSPOT",
                       "place_name": "place 1"
                     },
                     {
                       "time": "14:00-15:00",
                       "place_id": 2,
                       "province": "SEOUL",
+                      "category": "TOURSPOT",
                       "place_name": "place 2"
                     },
                     {
                       "time": "17:00-18:00",
                       "place_id": 3,
                       "province": "SEOUL",
+                      "category": "TOURSPOT",
                       "place_name": "place 3"
                     }
                   ],
@@ -135,12 +143,14 @@ public class PlanServiceTest {
                       "time": "10:00-11:00",
                       "place_id": 4,
                       "province": "SEOUL",
+                      "category": "TOURSPOT",
                       "place_name": "place 4"
                     },
                     {
                       "time": "11:00-13:00",
                       "place_id": 5,
                       "province": "SEOUL",
+                      "category": "TOURSPOT",
                       "place_name": "place 5"
                     }
                   ]
@@ -152,7 +162,7 @@ public class PlanServiceTest {
     @Test
     void createScheduleTest() {
         Place place1 = Place.builder()
-                .placeId(1L)
+                .placeId(99991L)
                 .name("Place1")
                 .province(Province.SEOUL)
                 .address("address")
@@ -162,7 +172,7 @@ public class PlanServiceTest {
         placeRepository.save(place1);
 
         Place place2 = Place.builder()
-                .placeId(2L)
+                .placeId(99992L)
                 .name("Place2")
                 .province(Province.SEOUL)
                 .address("address")
@@ -171,10 +181,13 @@ public class PlanServiceTest {
                 .build();
         placeRepository.save(place2);
 
-        List<Long> placeIds = Arrays.asList(1L, 2L);
+        List<SelectedPlaceDto> selectedPlaces = Arrays.asList(
+                new SelectedPlaceDto(99991L, Category.TOURSPOT, Province.SEOUL),
+                new SelectedPlaceDto(99992L, Category.TOURSPOT, Province.SEOUL)
+        );
         Integer duration = 1;
 
-        Map<String, List<PlaceItem>> stringListMap = planAiService.createSchedule(placeIds, duration);
+        Map<String, List<PlaceItem>> stringListMap = planAiService.createSchedule(selectedPlaces, duration);
         stringListMap.forEach((key, value) -> {
             Assertions.assertThat(key).isEqualTo("1");
             value.forEach(item -> Assertions.assertThat(item).isInstanceOf(PlaceItem.class));
@@ -196,7 +209,7 @@ public class PlanServiceTest {
 
         // Places
         Place place1 = Place.builder()
-                .placeId(1L)
+                .placeId(99991L)
                 .name("Place1")
                 .province(Province.SEOUL)
                 .address("address")
@@ -206,7 +219,7 @@ public class PlanServiceTest {
         placeRepository.save(place1);
 
         Place place2 = Place.builder()
-                .placeId(2L)
+                .placeId(99992L)
                 .name("Place2")
                 .province(Province.SEOUL)
                 .address("address")
@@ -214,7 +227,11 @@ public class PlanServiceTest {
                 .description("Place 2 Description")
                 .build();
         placeRepository.save(place2);
-        List<Long> placeIds = Arrays.asList(1L, 2L);
+
+        List<SelectedPlaceDto> selectedPlaces = Arrays.asList(
+                new SelectedPlaceDto(99991L, Category.TOURSPOT, Province.SEOUL),
+                new SelectedPlaceDto(99992L, Category.TOURSPOT, Province.SEOUL)
+        );
 
         // Tags (Tag 엔티티는 category가 아니라 tagType을 사용)
         Tag tag1 = Tag.builder()
@@ -235,7 +252,7 @@ public class PlanServiceTest {
                 .userId(user.getId())
                 .name("Plan1")
                 .duration(1)
-                .placeIds(placeIds)
+                .selectedPlaces(selectedPlaces)
                 .tagIds(tagIds)
                 .province(Province.SEOUL)
                 .isPrivate(true)
