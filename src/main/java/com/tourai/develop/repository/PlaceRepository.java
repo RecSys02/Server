@@ -1,0 +1,13 @@
+package com.tourai.develop.repository;
+
+import com.tourai.develop.domain.entity.Place;
+import com.tourai.develop.domain.enumType.Category;
+import com.tourai.develop.domain.enumType.Province;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface PlaceRepository extends JpaRepository<Place, Long> {
+    Optional<Place> findByPlaceIdAndCategoryAndProvince(Long placeId, Category category, Province province);
+}

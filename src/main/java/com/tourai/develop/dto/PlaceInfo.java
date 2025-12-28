@@ -1,0 +1,19 @@
+package com.tourai.develop.dto;
+
+import com.tourai.develop.domain.enumType.Category;
+import com.tourai.develop.domain.enumType.Province;
+import java.util.List;
+
+public record PlaceInfo(
+    Long placeId,
+    Category category,
+    Province province,
+    String name,
+    String address,
+    String duration,
+    String description,
+    List<String> images,
+    List<String> keywords,
+    Double latitude,
+    Double longitude
+) {}
