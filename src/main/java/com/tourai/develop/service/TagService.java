@@ -1,10 +1,10 @@
 package com.tourai.develop.service;
 
 import com.tourai.develop.domain.entity.Tag;
+import com.tourai.develop.dto.response.TagResponseDto;
 import com.tourai.develop.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -17,6 +17,18 @@ public class TagService {
 
     public List<Tag> findAll() {
         return tagRepository.findAll();
+    }
+
+    public List<TagResponseDto> findAllTags() {
+        return tagRepository.findAll().stream()
+                .map(TagResponseDto::from)
+                .toList();
+    }
+
+    public TagResponseDto findTagById(Long id) {
+        Tag tag = tagRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Tag not found with id: " + id));
+        return TagResponseDto.from(tag);
     }
 
     @Transactional
