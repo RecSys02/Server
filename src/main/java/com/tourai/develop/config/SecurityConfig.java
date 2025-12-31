@@ -65,7 +65,9 @@ public class SecurityConfig {
                                 "/api/plans",
                                 "/api/plans/*",
                                 "/api/plans/user/*",
-                                "/api/places/*").permitAll()
+                                "/api/places/*",
+                                "/api/tags",
+                                "/api/tags/*").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().authenticated());
