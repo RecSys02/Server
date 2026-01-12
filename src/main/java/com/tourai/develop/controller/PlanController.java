@@ -8,11 +8,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -34,9 +36,21 @@ public class PlanController {
     }
 
     @GetMapping
-    @Operation(summary = "공개 Plan 조회", description = "모든 사용자의 공개된 Plan을 최신순으로 조회합니다.")
-    public ResponseEntity<List<PlanResponseDto>> getPublicPlans() {
-        return ResponseEntity.ok(planService.getPublicPlans());
+    @Operation(summary = "공개 Plan 조회", description = "모든 사용자의 공개된 Plan을 최신순으로 조회합니다. 날짜 필터링(from, to)이 가능하며, 날짜가 없으면 오늘 이후의 Plan을 조회합니다.")
+    public ResponseEntity<List<PlanResponseDto>> getPublicPlans(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
+    ) {
+        return ResponseEntity.ok(planService.getPublicPlans(from, to));
+    }
+
+    @GetMapping("/popular")
+    @Operation(summary = "인기 Plan 조회", description = "좋아요가 많은 순서대로 상위 6개의 공개된 Plan을 조회합니다. 날짜 필터링(from, to)이 가능하며, 날짜가 없으면 오늘 이후의 Plan을 조회합니다.")
+    public ResponseEntity<List<PlanResponseDto>> getPopularPlans(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
+    ) {
+        return ResponseEntity.ok(planService.getPopularPlans(from, to));
     }
 
     @GetMapping("/{planId}")
@@ -45,12 +59,14 @@ public class PlanController {
         return ResponseEntity.ok(planService.getPlanDetail(planId));
     }
 
-    @GetMapping("/user/{userId}")
-    @Operation(summary = "유저별 Plan 조회", description = "특정 유저가 작성한 Plan 목록을 조회합니다.")
-    public ResponseEntity<List<PlanResponseDto>> getUserPlans(
-            @PathVariable Long userId,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(planService.getUserPlans(userId, userDetails.getUsername()));
+    @GetMapping("/my")
+    @Operation(summary = "내 Plan 조회", description = "로그인한 사용자가 작성한 Plan 목록을 조회합니다. 날짜 필터링(from, to)이 가능하며, 날짜가 없으면 오늘 이후의 Plan을 조회합니다.")
+    public ResponseEntity<List<PlanResponseDto>> getMyPlans(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
+    ) {
+        return ResponseEntity.ok(planService.getMyPlans(userDetails.getUsername(), from, to));
     }
 
     @PatchMapping("/{planId}/privacy")
