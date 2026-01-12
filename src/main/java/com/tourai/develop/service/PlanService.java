@@ -68,15 +68,19 @@ public class PlanService {
         LocalDateTime fromDateTime;
         LocalDateTime toDateTime;
 
+        // PostgreSQL timestamp range safe values
+        LocalDateTime minSafeDate = LocalDateTime.of(1900, 1, 1, 0, 0);
+        LocalDateTime maxSafeDate = LocalDateTime.of(3000, 12, 31, 23, 59, 59);
+
         if (from == null && to == null) {
             // 날짜가 없으면 오늘 날짜 이후 (오늘 00:00:00 부터)
             fromDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
-            toDateTime = LocalDateTime.MAX; // 아주 먼 미래
+            toDateTime = maxSafeDate; // 아주 먼 미래
         } else {
             // from이 없으면 아주 먼 과거부터
-            fromDateTime = (from != null) ? LocalDateTime.of(from, LocalTime.MIN) : LocalDateTime.MIN;
+            fromDateTime = (from != null) ? LocalDateTime.of(from, LocalTime.MIN) : minSafeDate;
             // to가 없으면 아주 먼 미래까지
-            toDateTime = (to != null) ? LocalDateTime.of(to, LocalTime.MAX) : LocalDateTime.MAX;
+            toDateTime = (to != null) ? LocalDateTime.of(to, LocalTime.MAX) : maxSafeDate;
         }
         return new LocalDateTime[]{fromDateTime, toDateTime};
     }
