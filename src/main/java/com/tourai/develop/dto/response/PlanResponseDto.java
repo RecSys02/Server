@@ -14,6 +14,7 @@ public record PlanResponseDto(
         Long userId,
         String userName,
         String name,
+        String imgSrc,
         Boolean isPrivate,
         Integer likeCount,
         List<DailySchedule> schedule,
@@ -27,6 +28,7 @@ public record PlanResponseDto(
                 .userId(plan.getUser().getId())
                 .userName(plan.getUser().getUserName())
                 .name(plan.getName())
+                .imgSrc(plan.getImgSrc())
                 .isPrivate(plan.getIsPrivate())
                 .likeCount(plan.getLikeCount())
                 .schedule(plan.getSchedule())

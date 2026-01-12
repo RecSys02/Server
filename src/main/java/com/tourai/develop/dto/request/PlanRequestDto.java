@@ -19,6 +19,8 @@ public record PlanRequestDto(
         @NotNull(message = "Plan 이름은 필수입니다.")
         String name,
 
+        String imgSrc,
+
         @NotNull(message = "여행 시작 날짜는 필수입니다.")
         LocalDate startDate,
 

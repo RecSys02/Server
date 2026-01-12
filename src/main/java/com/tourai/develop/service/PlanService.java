@@ -4,8 +4,10 @@ import com.tourai.develop.aop.annotation.UserActionLog;
 import com.tourai.develop.domain.entity.*;
 import com.tourai.develop.domain.enumType.Action;
 import com.tourai.develop.dto.DailySchedule;
+import com.tourai.develop.dto.SelectedPlaceDto;
 import com.tourai.develop.dto.request.PlanRequestDto;
 import com.tourai.develop.dto.response.PlanResponseDto;
+import com.tourai.develop.repository.PlaceRepository;
 import com.tourai.develop.repository.PlanLikeRepository;
 import com.tourai.develop.repository.PlanRepository;
 import com.tourai.develop.repository.TagRepository;
@@ -29,6 +31,7 @@ public class PlanService {
     private final PlanLikeRepository planLikeRepository;
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
+    private final PlaceRepository placeRepository;
 
     private final PlanAiService planAiService;
 
@@ -96,10 +99,24 @@ public class PlanService {
         // 스케줄 생성
         List<DailySchedule> schedule = planAiService.createSchedule(planRequestDto.selectedPlaces(), planRequestDto.startDate(), (int) duration);
 
+        // 이미지 소스 결정
+        String imgSrc = planRequestDto.imgSrc();
+        if (imgSrc == null || imgSrc.isEmpty()) {
+            for (SelectedPlaceDto placeDto : planRequestDto.selectedPlaces()) {
+                Place place = placeRepository.findByPlaceIdAndCategoryAndProvince(placeDto.placeId(), placeDto.category(), placeDto.province())
+                        .orElse(null);
+                if (place != null && !place.getImages().isEmpty()) {
+                    imgSrc = place.getImages().get(0);
+                    break;
+                }
+            }
+        }
+
         // plan 생성
         Plan plan = Plan.builder()
                 .user(findUser)
                 .name(planRequestDto.name())
+                .imgSrc(imgSrc)
                 .isPrivate(planRequestDto.isPrivate())
                 .schedule(schedule)
                 .build();

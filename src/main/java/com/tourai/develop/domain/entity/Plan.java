@@ -44,6 +44,9 @@ public class Plan {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
+    @Column(name = "img_src")
+    private String imgSrc;
+
     @Column(name = "is_private")
     private Boolean isPrivate;
 
