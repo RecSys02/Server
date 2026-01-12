@@ -14,6 +14,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,27 +38,47 @@ public class PlanService {
         return PlanResponseDto.from(plan);
     }
 
-    public List<PlanResponseDto> getPublicPlans() {
-        return planRepository.findByIsPrivateFalseOrderByCreatedAtDesc().stream()
+    public List<PlanResponseDto> getPublicPlans(LocalDate from, LocalDate to) {
+        LocalDateTime[] dateRange = getDateRange(from, to);
+        return planRepository.findByIsPrivateFalseAndCreatedAtBetweenOrderByCreatedAtDesc(dateRange[0], dateRange[1]).stream()
                 .map(PlanResponseDto::from)
                 .collect(Collectors.toList());
     }
 
-    public List<PlanResponseDto> getUserPlans(Long targetUserId, String requesterEmail) {
-        User requester = userRepository.findByEmail(requesterEmail)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + requesterEmail));
+    public List<PlanResponseDto> getPopularPlans(LocalDate from, LocalDate to) {
+        LocalDateTime[] dateRange = getDateRange(from, to);
+        return planRepository.findTop6ByIsPrivateFalseAndCreatedAtBetweenOrderByLikeCountDesc(dateRange[0], dateRange[1]).stream()
+                .map(PlanResponseDto::from)
+                .collect(Collectors.toList());
+    }
 
-        if (requester.getId().equals(targetUserId)) {
-            // 본인의 Plan 조회 (모든 Plan)
-            return planRepository.findByUserIdOrderByCreatedAtDesc(targetUserId).stream()
-                    .map(PlanResponseDto::from)
-                    .collect(Collectors.toList());
+    public List<PlanResponseDto> getMyPlans(String email, LocalDate from, LocalDate to) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + email));
+
+        LocalDateTime[] dateRange = getDateRange(from, to);
+
+        // 본인의 Plan 조회 (모든 Plan)
+        return planRepository.findByUserIdAndCreatedAtBetweenOrderByCreatedAtDesc(user.getId(), dateRange[0], dateRange[1]).stream()
+                .map(PlanResponseDto::from)
+                .collect(Collectors.toList());
+    }
+
+    private LocalDateTime[] getDateRange(LocalDate from, LocalDate to) {
+        LocalDateTime fromDateTime;
+        LocalDateTime toDateTime;
+
+        if (from == null && to == null) {
+            // 날짜가 없으면 오늘 날짜 이후 (오늘 00:00:00 부터)
+            fromDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
+            toDateTime = LocalDateTime.MAX; // 아주 먼 미래
         } else {
-            // 타인의 Plan 조회 (공개된 Plan만)
-            return planRepository.findByUserIdAndIsPrivateFalseOrderByCreatedAtDesc(targetUserId).stream()
-                    .map(PlanResponseDto::from)
-                    .collect(Collectors.toList());
+            // from이 없으면 아주 먼 과거부터
+            fromDateTime = (from != null) ? LocalDateTime.of(from, LocalTime.MIN) : LocalDateTime.MIN;
+            // to가 없으면 아주 먼 미래까지
+            toDateTime = (to != null) ? LocalDateTime.of(to, LocalTime.MAX) : LocalDateTime.MAX;
         }
+        return new LocalDateTime[]{fromDateTime, toDateTime};
     }
 
     @UserActionLog(action = Action.CREATE_PLAN)
