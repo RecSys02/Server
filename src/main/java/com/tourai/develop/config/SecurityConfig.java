@@ -9,6 +9,7 @@ import com.tourai.develop.service.AuthService;
 import com.tourai.develop.service.CustomUserDetailsService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -20,6 +21,13 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -35,6 +43,9 @@ public class SecurityConfig {
     private final UserRepository userRepository;
     private final CustomLogoutSuccessHandler customLogoutSuccessHandler;
 
+    @Value("${cors.allowed-origins}")
+    private List<String> allowedOrigins;
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
@@ -46,16 +57,15 @@ public class SecurityConfig {
                                            CustomUserDetailsService customUserDetailsService,
                                            CustomSuccessHandler customSuccessHandler) throws Exception {
 
-        httpSecurity
-                .csrf((auth) -> auth.disable());
+        LoginFilter loginFilter = new LoginFilter(authenticationManager, jwtUtil, refreshTokenService, authService, userRepository);
+        loginFilter.setPostOnly(true);
+        loginFilter.setFilterProcessesUrl("/auth/login");
 
         httpSecurity
-                .formLogin((auth) -> auth.disable());
-
-        httpSecurity
-                .httpBasic((auth) -> auth.disable());
-
-        httpSecurity
+                .cors(corsCustomizer -> corsCustomizer.configurationSource(corsConfigurationSource()))
+                .csrf((auth) -> auth.disable())
+                .formLogin((auth) -> auth.disable())
+                .httpBasic((auth) -> auth.disable())
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/auth/login", "/", "/auth/join", "/auth/logout",
                                 "/auth/reissue", "/oauth2/**",
@@ -70,53 +80,47 @@ public class SecurityConfig {
                                 "/api/tags/*").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN")
-                        .anyRequest().authenticated());
-
-
-        LoginFilter loginFilter = new LoginFilter(authenticationManager, jwtUtil, refreshTokenService, authService, userRepository);
-        loginFilter.setPostOnly(true);
-        loginFilter.setFilterProcessesUrl("/auth/login");
-
-        httpSecurity
-                .addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class);
-
-
-        httpSecurity
-                .addFilterBefore(new JwtFilter(jwtUtil, customUserDetailsService), LoginFilter.class);
-
-
-        //oauth2
-        httpSecurity
+                        .anyRequest().authenticated())
+                .addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtFilter(jwtUtil, customUserDetailsService), LoginFilter.class)
                 .oauth2Login((oauth2) -> oauth2
                         .userInfoEndpoint((userInfoEndpointConfig -> userInfoEndpointConfig
                                 .userService(customOAuth2UserService)))
-                        .successHandler(customSuccessHandler));
-
-
-        httpSecurity
+                        .successHandler(customSuccessHandler))
                 .sessionManagement((session)
-                        -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        httpSecurity.logout((logout) -> logout
-                .logoutUrl("/auth/logout")
-                .addLogoutHandler(redisLogoutHandler)
-                .logoutSuccessHandler(customLogoutSuccessHandler)
-        );
-
-        httpSecurity.exceptionHandling(e -> e
-                .authenticationEntryPoint((request, response, authException) -> {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.setContentType("application/json");
-                    response.setCharacterEncoding("UTF-8");
-                    response.getWriter().write("""
-                                {"code":"AUTH_REQUIRED","message":"로그인 후 이용해주세요."}
-                            """);
-                })
-        );
-
+                        -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .logout((logout) -> logout
+                        .logoutUrl("/auth/logout")
+                        .addLogoutHandler(redisLogoutHandler)
+                        .logoutSuccessHandler(customLogoutSuccessHandler)
+                )
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.setCharacterEncoding("UTF-8");
+                            response.getWriter().write("""
+                                        {"code":"AUTH_REQUIRED","message":"로그인 후 이용해주세요."}
+                                    """);
+                        })
+                );
 
         return httpSecurity.build();
     }
 
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(allowedOrigins);
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Set-Cookie"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
 }
