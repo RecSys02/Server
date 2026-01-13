@@ -38,31 +38,110 @@ services:
       timeout: 3s
       retries: 20
 
-  kafka:
+  kafka1:
     image: apache/kafka:4.1.0
-    container_name: kafka
-    hostname: kafka
+    container_name: kafka1
+    hostname: kafka1
     environment:
-      # 노드 역할 및 ID 설정
       - KAFKA_NODE_ID=1
       - KAFKA_PROCESS_ROLES=broker,controller
-      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@localhost:9093
 
-      # 리스너 및 주소 설정
+      # 3-node controller quorum (KRaft)
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka1:9093,2@kafka2:9093,3@kafka3:9093
+
+      # listeners
       - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka1:9092,PLAINTEXT_HOST://localhost:29092
       - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
       - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
       - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
 
-      # 단일 브로커(1대) 환경을 위한 필수 최적화 설정
-      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
-      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
-      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+      # same cluster id
+      - KAFKA_CLUSTER_ID=${KAFKA_CLUSTER_ID}
+
+      # replication (internal topics)
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=3
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=3
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=2
       - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
+
     ports:
-      - "9092:9092"
       - "29092:29092"
+
+    volumes:
+      - kafka1_data:/var/lib/kafka/data
+    restart: unless-stopped
+    networks:
+      - tourai_backend
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  kafka2:
+    image: apache/kafka:4.1.0
+    container_name: kafka2
+    hostname: kafka2
+    environment:
+      - KAFKA_NODE_ID=2
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka1:9093,2@kafka2:9093,3@kafka3:9093
+
+      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:39092,CONTROLLER://0.0.0.0:9093
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka2:9092,PLAINTEXT_HOST://localhost:39092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+
+      - KAFKA_CLUSTER_ID=${KAFKA_CLUSTER_ID}
+
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=3
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=3
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=2
+      - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
+
+    ports:
+      - "39092:39092"
+
+    volumes:
+      - kafka2_data:/var/lib/kafka/data
+    restart: unless-stopped
+    networks:
+      - tourai_backend
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  kafka3:
+    image: apache/kafka:4.1.0
+    container_name: kafka3
+    hostname: kafka3
+    environment:
+      - KAFKA_NODE_ID=3
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka1:9093,2@kafka2:9093,3@kafka3:9093
+
+      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:49092,CONTROLLER://0.0.0.0:9093
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka3:9092,PLAINTEXT_HOST://localhost:49092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+
+      - KAFKA_CLUSTER_ID=${KAFKA_CLUSTER_ID}
+
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=3
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=3
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=2
+      - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
+
+    ports:
+      - "49092:49092"
+
+    volumes:
+      - kafka3_data:/var/lib/kafka/data
     restart: unless-stopped
     networks:
       - tourai_backend
@@ -96,7 +175,8 @@ services:
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
       - SPRING_DATA_REDIS_HOST=redis
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka1:9092,kafka2:9092,kafka3:9092
+
       - AI_BASE_URL=${AI_BASE_URL}
       - JWT_SECRET=${JWT_SECRET}
       - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
@@ -113,7 +193,11 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      kafka:
+      kafka1:
+        condition: service_healthy
+      kafka2:
+        condition: service_healthy
+      kafka3:
         condition: service_healthy
     networks:
       - tourai_backend
@@ -136,7 +220,6 @@ services:
     networks:
       - tourai_backend
 
-
   # === Chat Server ===
   chat-server:
     build:
@@ -146,13 +229,19 @@ services:
     platform: linux/amd64
     container_name: chat-server
     environment:
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka1:9092,kafka2:9092,kafka3:9092
       - AI_BASE_URL=http://core:8080
     ports:
       - "8082:8082"
     depends_on:
-      - kafka
-      - core
+      kafka1:
+        condition: service_healthy
+      kafka2:
+        condition: service_healthy
+      kafka3:
+        condition: service_healthy
+      core:
+        condition: service_started
     networks:
       - tourai_backend
 
@@ -163,3 +252,6 @@ networks:
 volumes:
   postgres_data:
   redis_data:
+  kafka1_data:
+  kafka2_data:
+  kafka3_data:
