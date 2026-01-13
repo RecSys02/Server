@@ -1,0 +1,16 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: chat-server
+
+  jackson:
+    mapper:
+      accept-case-insensitive-enums: true
+
+#  kafka:
+#    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+
+ai:
+  base-url: ${AI_BASE_URL}
