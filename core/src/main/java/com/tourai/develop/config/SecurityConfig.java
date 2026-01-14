@@ -73,6 +73,7 @@ public class SecurityConfig {
                                 "/error").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/plans",
+                                "/api/plans/popular",
                                 "/api/plans/*",
                                 "/api/plans/user/*",
                                 "/api/places/*",
