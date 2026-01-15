@@ -6,6 +6,7 @@ import com.tourai.develop.domain.enumType.Action;
 import com.tourai.develop.dto.DailySchedule;
 import com.tourai.develop.dto.request.PlanRequestDto;
 import com.tourai.develop.dto.response.PlanResponseDto;
+import com.tourai.develop.kafka.PlanLikeEventPublisher;
 import com.tourai.develop.repository.PlanLikeRepository;
 import com.tourai.develop.repository.PlanRepository;
 import com.tourai.develop.repository.TagRepository;
@@ -31,6 +32,7 @@ public class PlanService {
     private final TagRepository tagRepository;
 
     private final PlanAiService planAiService;
+    private final PlanLikeEventPublisher planLikeEventPublisher;
 
     public PlanResponseDto getPlanDetail(Long planId) {
         Plan plan = planRepository.findById(planId)
@@ -127,11 +129,11 @@ public class PlanService {
     public Plan deletePlan(Long planId) {
         Plan plan = planRepository.findById(planId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 planId 입니다: " + planId));
-        
+
         // TODO: 권한 체크 로직 필요 (현재 로그인한 사용자와 plan 작성자가 같은지)
         // SecurityContextHolder를 사용하는 경우 여기서 체크하거나, 
         // Controller에서 체크해서 넘겨줘야 함.
-        
+
         planRepository.delete(plan);
         return plan; // 삭제된 Plan 객체 리턴 (AOP 로깅용)
     }
@@ -160,7 +162,7 @@ public class PlanService {
                 .plan(plan)
                 .build();
         planLikeRepository.save(newLike);
-        
+        planLikeEventPublisher.publishLike(plan.getId(), user.getId());
         return plan;
     }
 
@@ -176,7 +178,7 @@ public class PlanService {
                 .orElseThrow(() -> new IllegalArgumentException("좋아요를 누르지 않았습니다."));
 
         planLikeRepository.delete(existingLike);
-        
+        planLikeEventPublisher.publishUnlike(plan.getId(), user.getId());
         return plan; // AOP를 위해 Plan 리턴
     }
 }
