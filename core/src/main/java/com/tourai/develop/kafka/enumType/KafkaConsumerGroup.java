@@ -4,7 +4,8 @@ public enum KafkaConsumerGroup {
 
     EMAIL_SERVICE("email-service"),
     LOG_SERVICE("log-service"),
-    TEMP_SERVICE("temp-service");
+    TEMP_SERVICE("temp-service"),
+    PLAN_RANKING("plan-ranking");
 
     private final String groupId;
     // Kafka 에서 공식 개념 이름이 "Consumer Group Id"라서 groupId 가 정석..
@@ -17,4 +18,4 @@ public enum KafkaConsumerGroup {
     public String getGroupId() {
         return groupId;
     }
-}
+    }
