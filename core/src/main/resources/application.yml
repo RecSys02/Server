@@ -66,8 +66,15 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
-      # properties:
-      #   partitioner.class: org.apache.kafka.clients.producer.RoundRobinPartitioner
+      properties:
+        partitioner.class: org.apache.kafka.clients.producer.RoundRobinPartitioner
+
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+
+
 
 data:
   sync:
@@ -83,6 +90,6 @@ gemini:
   api-key: ${GEMINI_API_KEY}
 
 cors:
-  allowed-origins:
-    - "https://recsys02client.vercel.app"
-    - "http://localhost:3000"
+  allowed-origins: https://recsys02client.vercel.app,http://localhost:3000
+
+
