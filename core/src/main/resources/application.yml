@@ -93,3 +93,6 @@ cors:
   allowed-origins: https://recsys02client.vercel.app,http://localhost:3000
 
 
+app:
+  ranking:
+    key-prefix: "rank:popular:plans"

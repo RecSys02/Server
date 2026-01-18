@@ -4,8 +4,10 @@ public enum KafkaTopic {
 
     TEMP("temp"),
     USER_SIGNED_UP("user.signed-up"),
-    EMAIL_SEND("email.send");
+    EMAIL_SEND("email.send"),
 
+    PLAN_LIKED("plan.liked"),
+    PLAN_UNLIKED("plan.unliked");
 
     private final String topic;
 
