@@ -16,12 +16,13 @@ public record PlanResponseDto(
         String name,
         Boolean isPrivate,
         Integer likeCount,
+        Boolean isActive,
         List<DailySchedule> schedule,
         List<String> tags,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
-    public static PlanResponseDto from(Plan plan) {
+    public static PlanResponseDto from(Plan plan, boolean isActive) {
         return PlanResponseDto.builder()
                 .id(plan.getId())
                 .userId(plan.getUser().getId())
@@ -29,6 +30,7 @@ public record PlanResponseDto(
                 .name(plan.getName())
                 .isPrivate(plan.getIsPrivate())
                 .likeCount(plan.getLikeCount())
+                .isActive(isActive)
                 .schedule(plan.getSchedule())
                 .tags(plan.getPlanTags().stream()
                         .map(pt -> pt.getTag().getName())

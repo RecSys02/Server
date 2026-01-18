@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,23 +35,60 @@ public class PlanService {
     private final PlanAiService planAiService;
     private final PlanLikeEventPublisher planLikeEventPublisher;
 
-    public PlanResponseDto getPlanDetail(Long planId) {
+    public PlanResponseDto getPlanDetail(Long planId, String email) {
         Plan plan = planRepository.findById(planId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 planId 입니다: " + planId));
-        return PlanResponseDto.from(plan);
+        
+        boolean isActive = false;
+        if (email != null) {
+            Optional<User> user = userRepository.findByEmail(email);
+            if (user.isPresent()) {
+                isActive = planLikeRepository.existsByPlanIdAndUserId(plan.getId(), user.get().getId());
+            }
+        }
+        
+        return PlanResponseDto.from(plan, isActive);
     }
 
-    public List<PlanResponseDto> getPublicPlans(LocalDate from, LocalDate to) {
+    public List<PlanResponseDto> getPublicPlans(LocalDate from, LocalDate to, String email) {
         LocalDateTime[] dateRange = getDateRange(from, to);
-        return planRepository.findByIsPrivateFalseAndCreatedAtBetweenOrderByCreatedAtDesc(dateRange[0], dateRange[1]).stream()
-                .map(PlanResponseDto::from)
+        List<Plan> plans = planRepository.findByIsPrivateFalseAndCreatedAtBetweenOrderByCreatedAtDesc(dateRange[0], dateRange[1]);
+        
+        User user = null;
+        if (email != null) {
+            user = userRepository.findByEmail(email).orElse(null);
+        }
+        
+        final User finalUser = user;
+        return plans.stream()
+                .map(plan -> {
+                    boolean isActive = false;
+                    if (finalUser != null) {
+                        isActive = planLikeRepository.existsByPlanIdAndUserId(plan.getId(), finalUser.getId());
+                    }
+                    return PlanResponseDto.from(plan, isActive);
+                })
                 .collect(Collectors.toList());
     }
 
-    public List<PlanResponseDto> getPopularPlans(LocalDate from, LocalDate to) {
+    public List<PlanResponseDto> getPopularPlans(LocalDate from, LocalDate to, String email) {
         LocalDateTime[] dateRange = getDateRange(from, to);
-        return planRepository.findTop6ByIsPrivateFalseAndCreatedAtBetweenOrderByLikeCountDesc(dateRange[0], dateRange[1]).stream()
-                .map(PlanResponseDto::from)
+        List<Plan> plans = planRepository.findTop6ByIsPrivateFalseAndCreatedAtBetweenOrderByLikeCountDesc(dateRange[0], dateRange[1]);
+        
+        User user = null;
+        if (email != null) {
+            user = userRepository.findByEmail(email).orElse(null);
+        }
+
+        final User finalUser = user;
+        return plans.stream()
+                .map(plan -> {
+                    boolean isActive = false;
+                    if (finalUser != null) {
+                        isActive = planLikeRepository.existsByPlanIdAndUserId(plan.getId(), finalUser.getId());
+                    }
+                    return PlanResponseDto.from(plan, isActive);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -62,7 +100,10 @@ public class PlanService {
 
         // 본인의 Plan 조회 (모든 Plan)
         return planRepository.findByUserIdAndCreatedAtBetweenOrderByCreatedAtDesc(user.getId(), dateRange[0], dateRange[1]).stream()
-                .map(PlanResponseDto::from)
+                .map(plan -> {
+                    boolean isActive = planLikeRepository.existsByPlanIdAndUserId(plan.getId(), user.getId());
+                    return PlanResponseDto.from(plan, isActive);
+                })
                 .collect(Collectors.toList());
     }
 
