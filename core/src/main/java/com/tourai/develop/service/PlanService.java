@@ -151,10 +151,12 @@ public class PlanService {
                 .schedule(schedule)
                 .build();
 
-        // plan에 tags 추가
-        List<Tag> tags = tagRepository.findAllById(planRequestDto.tagIds());
+        // plan에 tags 추가 (User의 태그를 가져와서 추가)
+        List<Tag> userTags = findUser.getUserTags().stream()
+                .map(UserTag::getTag)
+                .collect(Collectors.toList());
 
-        for (Tag tag : tags) {
+        for (Tag tag : userTags) {
             PlanTag planTag = PlanTag.builder()
                     .plan(plan)
                     .tag(tag)
