@@ -7,21 +7,64 @@ spring:
 
   cloud:
     gateway:
-      routes:
-        # 1) Core API
-        - id: core-api
-          uri: ${CORE_BASE_URL:http://core:8080}
-          predicates:
-            - Path=/api/**
+      server:
+        webflux:
+          routes:
+            - id: core
+              uri: ${CORE_BASE_URL:http://localhost:8080}
+              predicates:
+                - Path=/core/**
+              filters:
+                - StripPrefix=1
+                - PreserveHostHeader
+                - SetRequestHeader=X-Forwarded-Prefix, /core
+                - AddRequestHeader=X-Forwarded-Proto, http
+                - AddRequestHeader=X-Forwarded-Port, 8000
 
-#        # 2) OAuth endpoints (core에서 처리, gateway는 프록시)
-#        - id: core-oauth
-#          uri: ${CORE_BASE_URL:http://core:8080}
-#          predicates:
-#            - Path=/oauth2/**,/login/oauth2/**
 
-        # 3) Chat/LLM API
-        - id: chat-api
-          uri: ${CHAT_BASE_URL:http://chat-server:8082}
-          predicates:
-            - Path=/chat/**
+            - id: chat-server
+              uri: ${CHAT_BASE_URL:http://localhost:8082}
+              predicates:
+                - Path=/chat/**
+              filters:
+                - StripPrefix=1
+
+jwt:
+  secret: ${JWT_SECRET}
+
+cors:
+  allowed-origins:
+    - https://recsys02client.vercel.app
+    - http://localhost:3000
+
+gateway:
+  auth:
+    permit-paths:
+      ####### CORE 서버 #######
+      # 1) auth/oauth2/error
+      - /core/auth/login
+      - /core/
+      - /core
+      - /core/auth/join
+      - /core/auth/logout
+      - /core/auth/reissue
+      - /core/oauth2/**
+      - /core/login/oauth2/**
+      - /core/error
+
+      # 2) GET 공개 API (Core에서 permitAll 한 것들)
+      - /core/api/plans
+      - /core/api/plans/popular
+      - /core/api/plans/*
+      - /core/api/plans/user/*
+      - /core/api/places/*
+      - /core/api/tags
+      - /core/api/tags/*
+
+      # 3) swagger
+      - /core/swagger-ui/**
+      - /core/v3/api-docs/**
+
+      ####### CHAT 서버 #######
+      - /chat
+      - /chat/
