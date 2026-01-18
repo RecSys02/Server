@@ -51,9 +51,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         log.info("LoginFilter.attemptAuthentication 들어왔음!");
-        if (!"/auth/login".equals(request.getRequestURI())) {
-            throw new AuthenticationServiceException("Login 시도 경로가 맞지 않습니다.");
-        }
         if (!"POST".equals(request.getMethod())) {
             throw new AuthenticationServiceException("POST 형식의 메서드 타입이 아닙니다.");
         }
