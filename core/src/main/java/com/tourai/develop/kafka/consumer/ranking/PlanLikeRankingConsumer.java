@@ -18,7 +18,7 @@ public class PlanLikeRankingConsumer {
     private static final double LIKE_WEIGHT = 1.0;
 
     @KafkaListener(
-            topics = "#{T(com.tourai.develop.kafka.enumType.KafkaTopic).PLAN_LIKED.topic()}",
+            topics = "#{T(com.tourai.develop.kafka.enumType.KafkaTopic).PLAN_LIKED.getTopic()}",
             groupId = "#{T(com.tourai.develop.kafka.enumType.KafkaConsumerGroup).PLAN_RANKING.getGroupId()}"
     )
     public void consumePlanLike(String message) {
@@ -33,7 +33,7 @@ public class PlanLikeRankingConsumer {
     }
 
     @KafkaListener(
-            topics = "#{T(com.tourai.develop.kafka.enumType.KafkaTopic).PLAN_UNLIKED.topic()}",
+            topics = "#{T(com.tourai.develop.kafka.enumType.KafkaTopic).PLAN_UNLIKED.getTopic()}",
             groupId = "#{T(com.tourai.develop.kafka.enumType.KafkaConsumerGroup).PLAN_RANKING.getGroupId()}"
     )
     public void consumePlanUnlike(String message) {
