@@ -2,8 +2,10 @@ package com.tourai.develop.service;
 
 import com.tourai.develop.domain.entity.Tag;
 import com.tourai.develop.domain.entity.User;
+import com.tourai.develop.dto.AvailabilityResponse;
 import com.tourai.develop.dto.EditProfileDto;
 import com.tourai.develop.dto.EditUserTagsDto;
+import com.tourai.develop.dto.UserMeResponse;
 import com.tourai.develop.exception.BusinessException;
 import com.tourai.develop.exception.enumType.ErrorCode;
 import com.tourai.develop.repository.TagRepository;
@@ -61,6 +63,13 @@ public class UserService {
             }
         }
     }
+
+    public UserMeResponse getMe(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        return new UserMeResponse(user.getUserName(), user.getImage());
+    }
+
 
 
 }

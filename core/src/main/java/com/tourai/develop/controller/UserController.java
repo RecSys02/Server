@@ -1,9 +1,6 @@
 package com.tourai.develop.controller;
 
-import com.tourai.develop.dto.CustomUserDetails;
-import com.tourai.develop.dto.EditProfileDto;
-import com.tourai.develop.dto.EditUserTagsDto;
-import com.tourai.develop.dto.LoginDto;
+import com.tourai.develop.dto.*;
 import com.tourai.develop.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -46,5 +43,9 @@ public class UserController {
         ));
     }
 
-
+    @GetMapping("/me")
+    public ResponseEntity<UserMeResponse> getMe(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        Long userId = customUserDetails.getUserId();
+        return ResponseEntity.ok(userService.getMe(userId));
+    }
 }
