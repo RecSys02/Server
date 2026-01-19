@@ -51,6 +51,8 @@ gateway:
       - /core/oauth2/**
       - /core/login/oauth2/**
       - /core/error
+      - /core/auth/check/name
+      - /core/auth/check/email
 
       # 2) GET 공개 API (Core에서 permitAll 한 것들)
       - /core/api/plans
