@@ -70,7 +70,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/login", "/", "/auth/join", "/auth/logout",
                                 "/auth/reissue", "/oauth2/**",
                                 "/login/oauth2/**",
-                                "/error").permitAll()
+                                "/error",
+                                "/auth/check/**").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/plans",
                                 "/api/plans/popular",
