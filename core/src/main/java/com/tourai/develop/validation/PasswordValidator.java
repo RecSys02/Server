@@ -4,21 +4,22 @@ import com.tourai.develop.exception.BusinessException;
 import com.tourai.develop.exception.enumType.ErrorCode;
 import org.springframework.stereotype.Component;
 
+import java.util.regex.Pattern;
+
 @Component
 public class PasswordValidator {
 
-    public void validatePassword(String password) {
+    // 프론트: /^(?=.*[a-z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/
+    private static final Pattern PASSWORD_PATTERN =
+            Pattern.compile("^(?=.*[a-z])(?=.*\\d)(?=.*[^a-zA-Z0-9]).{8,}$");
 
+    public void validatePassword(String password) {
         if (password == null || password.length() < 8) {
             throw new BusinessException(ErrorCode.PASSWORD_TOO_SHORT);
         }
 
-        boolean isHasLetter = password.chars().anyMatch(Character::isLetter);
-        boolean isHasDigit = password.chars().anyMatch(Character::isDigit);
-
-        if (!isHasLetter || !isHasDigit) {
-            throw new BusinessException(ErrorCode.PASSWORD_MUST_CONTAIN_ALPHA_NUMERIC);
+        if (!PASSWORD_PATTERN.matcher(password).matches()) {
+            throw new BusinessException(ErrorCode.PASSWORD_INVALID_FORMAT);
         }
-
     }
 }
