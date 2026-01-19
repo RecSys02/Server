@@ -32,4 +32,20 @@ public class KafkaTopicConfig {
                 .replicas(3)
                 .build();
     }
+    @Bean
+    public NewTopic planLikedTopic() {
+        return TopicBuilder.name(KafkaTopic.PLAN_LIKED.getTopic())
+                .partitions(3)
+                .replicas(3)
+                .build();
+    }
+
+    @Bean
+    public NewTopic planUnlikedTopic() {
+        return TopicBuilder.name(KafkaTopic.PLAN_UNLIKED.getTopic())
+                .partitions(3)
+                .replicas(3)
+                .build();
+    }
+
 }
