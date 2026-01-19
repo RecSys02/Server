@@ -4,6 +4,7 @@ import com.tourai.develop.aop.annotation.UserActionLog;
 import com.tourai.develop.domain.entity.Tag;
 import com.tourai.develop.domain.entity.User;
 import com.tourai.develop.domain.enumType.Action;
+import com.tourai.develop.dto.AvailabilityResponse;
 import com.tourai.develop.dto.ReissueDto;
 import com.tourai.develop.dto.SignUpDto;
 import com.tourai.develop.exception.*;
@@ -146,6 +147,16 @@ public class AuthService {
     @UserActionLog(action = Action.LOGOUT)
     public void onLogoutSuccess(User user) {
         // 로그아웃 성공 후 추가 로직이 필요하다면 여기에 작성
+    }
+
+    public AvailabilityResponse checkEmailAvailable(String email) {
+        boolean available = !userRepository.existsByEmail(email);
+        return new AvailabilityResponse(available);
+    }
+
+    public AvailabilityResponse checkNameAvailable(String userName) {
+        boolean available = !userRepository.existsByUserName(userName);
+        return new AvailabilityResponse(available);
     }
 
 }

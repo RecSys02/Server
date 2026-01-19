@@ -1,6 +1,7 @@
 package com.tourai.develop.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tourai.develop.dto.AvailabilityResponse;
 import com.tourai.develop.dto.LoginDto;
 import com.tourai.develop.dto.ReissueDto;
 import com.tourai.develop.dto.SignUpDto;
@@ -72,6 +73,16 @@ public class AuthController {
     @Operation(summary = "로그인", description = "이메일과 비밀번호를 사용하여 로그인합니다. 실제 처리는 Spring Security 필터에서 이루어집니다.")
     @PostMapping("/login")
     public void login(@RequestBody LoginDto loginDto) {
+    }
+
+    @GetMapping("/check/email")
+    public ResponseEntity<AvailabilityResponse> checkEmail(@RequestParam("email") String email) {
+        return ResponseEntity.ok(authService.checkEmailAvailable(email));
+    }
+
+    @GetMapping("/check/name")
+    public ResponseEntity<AvailabilityResponse> checkName(@RequestParam("name") String name) {
+        return ResponseEntity.ok(authService.checkNameAvailable(name));
     }
 
 }
