@@ -59,6 +59,12 @@ services:
       # same cluster id
       - KAFKA_CLUSTER_ID=${KAFKA_CLUSTER_ID}
 
+      # ✅ align kafka log dir with mounted volume
+      - KAFKA_LOG_DIRS=/var/lib/kafka/data
+      - KAFKA_DELETE_TOPIC_ENABLE=true
+      - KAFKA_CFG_DELETE_TOPIC_ENABLE=true
+
+
       # replication (internal topics)
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=3
       - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=3
@@ -74,10 +80,11 @@ services:
     networks:
       - tourai_backend
     healthcheck:
-      test: [ "CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1" ]
+      # ✅ use service hostname + give more time
+      test: [ "CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka1:9092 >/dev/null 2>&1" ]
       interval: 10s
-      timeout: 5s
-      retries: 30
+      timeout: 10s
+      retries: 60
 
   kafka2:
     image: apache/kafka:4.1.0
@@ -96,6 +103,12 @@ services:
 
       - KAFKA_CLUSTER_ID=${KAFKA_CLUSTER_ID}
 
+      # ✅ align kafka log dir with mounted volume
+      - KAFKA_LOG_DIRS=/var/lib/kafka/data
+      - KAFKA_DELETE_TOPIC_ENABLE=true
+      - KAFKA_CFG_DELETE_TOPIC_ENABLE=true
+
+
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=3
       - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=3
       - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=2
@@ -110,10 +123,11 @@ services:
     networks:
       - tourai_backend
     healthcheck:
-      test: [ "CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1" ]
+      # ✅ use service hostname + give more time
+      test: [ "CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka2:9092 >/dev/null 2>&1" ]
       interval: 10s
-      timeout: 5s
-      retries: 30
+      timeout: 10s
+      retries: 60
 
   kafka3:
     image: apache/kafka:4.1.0
@@ -132,6 +146,11 @@ services:
 
       - KAFKA_CLUSTER_ID=${KAFKA_CLUSTER_ID}
 
+      # ✅ align kafka log dir with mounted volume
+      - KAFKA_LOG_DIRS=/var/lib/kafka/data
+      - KAFKA_DELETE_TOPIC_ENABLE=true
+      - KAFKA_CFG_DELETE_TOPIC_ENABLE=true
+
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=3
       - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=3
       - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=2
@@ -146,10 +165,11 @@ services:
     networks:
       - tourai_backend
     healthcheck:
-      test: [ "CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1" ]
+      # ✅ use service hostname + give more time
+      test: [ "CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka3:9092 >/dev/null 2>&1" ]
       interval: 10s
-      timeout: 5s
-      retries: 30
+      timeout: 10s
+      retries: 60
 
   mailhog:
     image: mailhog/mailhog:latest
