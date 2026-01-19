@@ -32,6 +32,9 @@ public class User {
     @Column(nullable = false, unique = true)
     private String password;
 
+    @Column(name = "image")
+    private String image;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<UserTag> userTags = new ArrayList<>();
@@ -69,6 +72,10 @@ public class User {
 
     public void clearTags() {
         this.userTags.clear();
+    }
+
+    public void changeImage(String image) {
+        this.image = image;
     }
 
 }
