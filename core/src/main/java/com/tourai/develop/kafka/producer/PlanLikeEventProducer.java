@@ -1,7 +1,6 @@
 package com.tourai.develop.kafka.producer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.tourai.develop.kafka.enumType.KafkaTopic;
 import com.tourai.develop.kafka.event.PlanLikedEvent;
 import com.tourai.develop.kafka.event.PlanUnlikedEvent;
@@ -15,9 +14,8 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class PlanLikeEventProducer {
     private final KafkaTemplate<String, String> kafkaTemplate;
-    private final ObjectMapper objectMapper = new ObjectMapper()
-            .registerModule(new JavaTimeModule())
-            .disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    private final ObjectMapper objectMapper;
+
     public void producePlanLikeEvent(PlanLikedEvent event) {
         produce(KafkaTopic.PLAN_LIKED.getTopic(), event.planId().toString(), event);
     }

@@ -1,7 +1,6 @@
 package com.tourai.develop.kafka.consumer.ranking;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.tourai.develop.kafka.event.PlanLikedEvent;
 import com.tourai.develop.kafka.event.PlanUnlikedEvent;
 import com.tourai.develop.kafka.service.PlanRankingRedisService;
@@ -14,10 +13,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class PlanLikeRankingConsumer {
-    private final ObjectMapper objectMapper = new ObjectMapper()
-            .registerModule(new JavaTimeModule())
-            .disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
+    private final ObjectMapper objectMapper;
     private final PlanRankingRedisService planRankingRedisService;
     private static final double LIKE_WEIGHT = 1.0;
 
