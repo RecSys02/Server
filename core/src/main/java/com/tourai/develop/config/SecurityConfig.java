@@ -81,6 +81,7 @@ public class SecurityConfig {
                                 "/api/tags",
                                 "/api/tags/*").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/internal/**").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class)

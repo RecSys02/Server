@@ -48,4 +48,12 @@ public class KafkaTopicConfig {
                 .build();
     }
 
+    @Bean
+    public NewTopic userContextUpdatedTopic() {
+        return TopicBuilder.name(KafkaTopic.USER_CONTEXT_UPDATED.getTopic())
+                .partitions(3)
+                .replicas(3)
+                .build();
+    }
+
 }

@@ -7,8 +7,9 @@ public enum KafkaTopic {
     EMAIL_SEND("email.send"),
 
     PLAN_LIKED("plan.liked"),
-    PLAN_UNLIKED("plan.unliked");
+    PLAN_UNLIKED("plan.unliked"),
 
+    USER_CONTEXT_UPDATED("user.context.updated");
     private final String topic;
 
     KafkaTopic(String topic) {

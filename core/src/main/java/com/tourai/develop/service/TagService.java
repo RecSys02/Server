@@ -1,6 +1,7 @@
 package com.tourai.develop.service;
 
 import com.tourai.develop.domain.entity.Tag;
+import com.tourai.develop.domain.enumType.TagType;
 import com.tourai.develop.dto.response.TagResponseDto;
 import com.tourai.develop.repository.TagRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -37,6 +38,13 @@ public class TagService {
     @Transactional
     public void saveAll(List<Tag> tags) {
         tagRepository.saveAll(tags);
+    }
+
+
+    @Transactional(readOnly = true)
+    public List<Tag> getTagsByTagTypeAndNames(TagType tagType, List<String> names) {
+        if (names == null || names.isEmpty()) return List.of();
+        return tagRepository.findByTagTypeAndNameIn(tagType, names);
     }
 
 }

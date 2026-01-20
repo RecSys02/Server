@@ -38,6 +38,24 @@ services:
       timeout: 3s
       retries: 20
 
+  redis2:
+    image: redis:7-alpine
+    platform: linux/amd64
+    container_name: redis2
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    command: [ "redis-server", "--appendonly", "yes" ]
+    volumes:
+      - redis2_data:/data
+    networks:
+      - tourai_backend
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   kafka1:
     image: apache/kafka:4.1.0
     container_name: kafka1
@@ -250,7 +268,11 @@ services:
     container_name: chat-server
     environment:
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka1:9092,kafka2:9092,kafka3:9092
-      - AI_BASE_URL=http://core:8080
+      - AI_BASE_URL=${AI_BASE_URL}
+      - CORE_BASE_URL=http://core:8080
+
+      - SPRING_DATA_REDIS_HOST=redis2
+      - SPRING_DATA_REDIS_PORT=6379
     ports:
       - "8082:8082"
     depends_on:
@@ -262,6 +284,8 @@ services:
         condition: service_healthy
       core:
         condition: service_started
+      redis2:
+        condition: service_healthy
     networks:
       - tourai_backend
 
@@ -272,6 +296,7 @@ networks:
 volumes:
   postgres_data:
   redis_data:
+  redis2_data:
   kafka1_data:
   kafka2_data:
   kafka3_data:

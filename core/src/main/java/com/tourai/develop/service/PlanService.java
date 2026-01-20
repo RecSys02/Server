@@ -6,7 +6,7 @@ import com.tourai.develop.domain.enumType.Action;
 import com.tourai.develop.dto.DailySchedule;
 import com.tourai.develop.dto.request.PlanRequestDto;
 import com.tourai.develop.dto.response.PlanResponseDto;
-import com.tourai.develop.kafka.PlanLikeEventPublisher;
+import com.tourai.develop.kafka.publisher.PlanLikeEventPublisher;
 import com.tourai.develop.repository.PlanLikeRepository;
 import com.tourai.develop.repository.PlanRepository;
 import com.tourai.develop.repository.TagRepository;

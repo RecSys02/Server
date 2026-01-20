@@ -4,13 +4,28 @@ server:
 spring:
   application:
     name: chat-server
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6380}
 
   jackson:
     mapper:
       accept-case-insensitive-enums: true
 
-#  kafka:
-#    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:29092,localhost:39092,localhost:49092}
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
 
 ai:
   base-url: ${AI_BASE_URL}
+
+core:
+  base-url: ${CORE_BASE_URL:http://localhost:8080}
+
+user-context:
+  redis-key-prefix: "user_ctx:"
+  ttl-seconds: 86400
