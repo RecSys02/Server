@@ -5,6 +5,13 @@ import lombok.Getter;
 
 import java.util.List;
 
-public record EditUserTagsDto (
-         List<Long> updateTagIds // 새롭게 덮어씌울 태그 리스트
-){}
+public record EditUserTagsDto(
+        List<String> preferredThemes,
+        List<String> preferredMoods,
+        List<String> preferredRestaurantTypes,
+        List<String> preferredCafeTypes,
+        List<String> avoid,
+        String activityLevel
+) {
+
+}
