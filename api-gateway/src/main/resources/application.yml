@@ -70,3 +70,4 @@ gateway:
       ####### CHAT 서버 #######
       - /chat
       - /chat/
+      - /chat/debug/**
