@@ -1,4 +1,4 @@
-package com.tourai.develop.kafka;
+package com.tourai.develop.kafka.publisher;
 
 import com.tourai.develop.kafka.event.PlanLikedEvent;
 import com.tourai.develop.kafka.event.PlanLikedInternalEvent;
