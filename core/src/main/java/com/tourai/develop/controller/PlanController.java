@@ -1,5 +1,6 @@
 package com.tourai.develop.controller;
 
+import com.tourai.develop.domain.entity.Plan;
 import com.tourai.develop.dto.request.PlanRequestDto;
 import com.tourai.develop.dto.response.PlanResponseDto;
 import com.tourai.develop.service.PlanService;
@@ -28,35 +29,42 @@ public class PlanController {
 
     @PostMapping
     @Operation(summary = "Plan 생성", description = "생성형 AI를 이용해 새로운 여행 계획을 생성합니다.")
-    public ResponseEntity<Void> createPlan(
+    public ResponseEntity<Long> createPlan(
             @RequestBody @Valid PlanRequestDto planRequestDto,
             @AuthenticationPrincipal UserDetails userDetails) {
-        planService.savePlan(planRequestDto, userDetails.getUsername());
-        return ResponseEntity.ok().build();
+        Plan plan = planService.savePlan(planRequestDto, userDetails.getUsername());
+        return ResponseEntity.ok(plan.getId());
     }
 
     @GetMapping
     @Operation(summary = "공개 Plan 조회", description = "모든 사용자의 공개된 Plan을 최신순으로 조회합니다. 날짜 필터링(from, to)이 가능하며, 날짜가 없으면 오늘 이후의 Plan을 조회합니다.")
     public ResponseEntity<List<PlanResponseDto>> getPublicPlans(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        return ResponseEntity.ok(planService.getPublicPlans(from, to));
+        String email = (userDetails != null) ? userDetails.getUsername() : null;
+        return ResponseEntity.ok(planService.getPublicPlans(from, to, email));
     }
 
     @GetMapping("/popular")
     @Operation(summary = "인기 Plan 조회", description = "좋아요가 많은 순서대로 상위 6개의 공개된 Plan을 조회합니다. 날짜 필터링(from, to)이 가능하며, 날짜가 없으면 오늘 이후의 Plan을 조회합니다.")
     public ResponseEntity<List<PlanResponseDto>> getPopularPlans(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        return ResponseEntity.ok(planService.getPopularPlans(from, to));
+        String email = (userDetails != null) ? userDetails.getUsername() : null;
+        return ResponseEntity.ok(planService.getPopularPlans(from, to, email));
     }
 
     @GetMapping("/{planId}")
     @Operation(summary = "Plan 상세 조회", description = "특정 Plan의 상세 정보를 조회합니다.")
-    public ResponseEntity<PlanResponseDto> getPlan(@PathVariable Long planId) {
-        return ResponseEntity.ok(planService.getPlanDetail(planId));
+    public ResponseEntity<PlanResponseDto> getPlan(
+            @PathVariable Long planId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        String email = (userDetails != null) ? userDetails.getUsername() : null;
+        return ResponseEntity.ok(planService.getPlanDetail(planId, email));
     }
 
     @GetMapping("/my")

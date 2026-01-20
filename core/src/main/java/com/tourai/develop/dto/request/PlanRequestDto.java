@@ -13,9 +13,6 @@ public record PlanRequestDto(
         @NotNull(message = "최소 하나 이상의 장소를 선택하여야 합니다.")
         List<SelectedPlaceDto> selectedPlaces,
 
-        @NotNull(message = "태그가 선택되지 않았습니다.")
-        List<Long> tagIds,
-
         @NotNull(message = "Plan 이름은 필수입니다.")
         String name,
 
