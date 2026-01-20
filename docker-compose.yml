@@ -268,7 +268,11 @@ services:
     container_name: chat-server
     environment:
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka1:9092,kafka2:9092,kafka3:9092
-      - AI_BASE_URL=http://core:8080
+      - AI_BASE_URL=${AI_BASE_URL}
+      - CORE_BASE_URL=http://core:8080
+
+      - SPRING_DATA_REDIS_HOST=redis2
+      - SPRING_DATA_REDIS_PORT=6379
     ports:
       - "8082:8082"
     depends_on:
@@ -280,6 +284,8 @@ services:
         condition: service_healthy
       core:
         condition: service_started
+      redis2:
+        condition: service_healthy
     networks:
       - tourai_backend
 
