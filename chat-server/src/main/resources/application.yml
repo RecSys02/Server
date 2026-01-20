@@ -25,3 +25,7 @@ ai:
 
 core:
   base-url: ${CORE_BASE_URL:http://localhost:8080}
+
+user-context:
+  redis-key-prefix: "user_ctx:"
+  ttl-seconds: 86400
