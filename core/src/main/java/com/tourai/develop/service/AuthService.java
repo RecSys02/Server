@@ -83,9 +83,10 @@ public class AuthService {
         String username = validateRefreshTokenAndGetUsername(refreshToken);
         validateRefreshTokenMatchesRedis(refreshToken, username);
         String role = jwtUtil.getRole(refreshToken);
+        Long userId = jwtUtil.getUserId(refreshToken);
 
-        String newAccessToken = jwtUtil.createJwt("access", username, role, accessTokenExpiredMs);
-        String newRefreshToken = jwtUtil.createJwt("refresh", username, role, refreshTokenExpiredMs);
+        String newAccessToken = jwtUtil.createJwt("access", userId, username, role, accessTokenExpiredMs);
+        String newRefreshToken = jwtUtil.createJwt("refresh", userId, username, role, refreshTokenExpiredMs);
 
 
         refreshTokenService.delete(username);

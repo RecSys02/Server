@@ -78,7 +78,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         CustomUserDetails principal = (CustomUserDetails) authentication.getPrincipal();
         String username = principal.getUsername();
-
+        Long userId = principal.getUserId();
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
         GrantedAuthority auth = iterator.next();
@@ -88,8 +88,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         Long accessTokenExpiredMs = 60 * 60 * 10L;
         Long refreshTokenExpiredMs = 864 * 100000L;
 
-        String accessToken = jwtUtil.createJwt("access", username, role, accessTokenExpiredMs);
-        String refreshToken = jwtUtil.createJwt("refresh", username, role, refreshTokenExpiredMs);
+        String accessToken = jwtUtil.createJwt("access", userId, username, role, accessTokenExpiredMs);
+        String refreshToken = jwtUtil.createJwt("refresh", userId, username, role, refreshTokenExpiredMs);
 
         refreshTokenService.save(username, refreshToken, Duration.ofMillis(refreshTokenExpiredMs));
 
