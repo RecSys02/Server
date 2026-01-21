@@ -31,14 +31,14 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         CustomOAuth2User customOAuth2User = (CustomOAuth2User) authentication.getPrincipal();
 
         String name = customOAuth2User.getName();
-
+        Long userId = customOAuth2User.getId();
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
         GrantedAuthority auth = iterator.next();
         String role = auth.getAuthority();
 
 
-        String refreshToken = jwtUtil.createJwt("refresh", name, role, refreshTokenExpiredMs);
+        String refreshToken = jwtUtil.createJwt("refresh", userId, name, role, refreshTokenExpiredMs);
         response.addCookie(jwtUtil.createCookie("refresh", refreshToken, refreshTokenExpiredMs));
         refreshTokenService.save(name, refreshToken, Duration.ofMillis(refreshTokenExpiredMs));
 

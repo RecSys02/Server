@@ -26,9 +26,10 @@ public class JwtUtil {
         this.cookieUtil = cookieUtil;
     }
 
-    public String createJwt(String tokenType, String username, String role, Long expiredMs) {
+    public String createJwt(String tokenType, Long userId, String username, String role, Long expiredMs) {
         return Jwts.builder()
                 .claim("tokenType", tokenType)
+                .claim("userId", userId)
                 .claim("username", username)
                 .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))
@@ -64,6 +65,12 @@ public class JwtUtil {
         return Jwts.parser().verifyWith(secretKey)
                 .build().parseSignedClaims(token).getPayload()
                 .get("username", String.class);
+    }
+
+    public Long getUserId(String token) {
+        return Jwts.parser().verifyWith(secretKey)
+                .build().parseSignedClaims(token).getPayload()
+                .get("userId", Long.class);
     }
 
     public String getRole(String token) {
