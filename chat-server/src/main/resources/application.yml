@@ -29,3 +29,7 @@ core:
 user-context:
   redis-key-prefix: "user_ctx:"
   ttl-seconds: 86400
+
+
+jwt:
+  secret: ${JWT_SECRET}
