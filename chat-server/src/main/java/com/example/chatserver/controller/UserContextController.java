@@ -1,6 +1,7 @@
 package com.example.chatserver.controller;
 
 import com.example.chatserver.dto.UserContextDto;
+import com.example.chatserver.service.AuthService;
 import com.example.chatserver.service.UserContextService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,10 +15,16 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/debug")
 public class UserContextController {
     private final UserContextService userContextService;
+    private final AuthService authService;
 
     @GetMapping("/user-context/{userId}")
     public Mono<UserContextDto> get(@PathVariable("userId") Long userId) {
         // redis2에 해당 user context 정보가 존재할 시 읽어오고, 존재하지 않을 시 core 서버에 api 요청 보내서 redis2에 저장
         return userContextService.getOrFetch(userId);
+    }
+
+    @GetMapping("/userId")
+    public Mono<Long> getUserId() {
+        return authService.currentUserId();
     }
 }
