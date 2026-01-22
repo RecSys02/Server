@@ -30,6 +30,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.5'
 
 
     implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
