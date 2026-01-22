@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 echo "=== 1. Building Docker Images (Target: linux/amd64) ==="
 
