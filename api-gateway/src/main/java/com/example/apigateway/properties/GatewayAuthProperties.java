@@ -1,4 +1,4 @@
-package com.example.apigateway.filter;
+package com.example.apigateway.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

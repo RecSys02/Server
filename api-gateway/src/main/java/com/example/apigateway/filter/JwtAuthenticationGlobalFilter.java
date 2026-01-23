@@ -1,6 +1,7 @@
 package com.example.apigateway.filter;
 
 import com.example.apigateway.jwt.JwtUtil;
+import com.example.apigateway.properties.GatewayAuthProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
@@ -27,7 +28,7 @@ public class JwtAuthenticationGlobalFilter implements GlobalFilter, Ordered {
     private final AntPathMatcher matcher = new AntPathMatcher();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public JwtAuthenticationGlobalFilter(JwtUtil jwtUtil, com.example.apigateway.filter.GatewayAuthProperties props) {
+    public JwtAuthenticationGlobalFilter(JwtUtil jwtUtil, GatewayAuthProperties props) {
         this.jwtUtil = jwtUtil;
         this.permitPaths = props.getPermitPaths();
     }
