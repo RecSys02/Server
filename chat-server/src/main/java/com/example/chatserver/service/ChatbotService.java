@@ -74,4 +74,9 @@ public class ChatbotService {
                                     )));
                 }));
     }
+
+    public Mono<List<ChatMessageDto>> getChatHistory() {
+        return authService.currentUserId()
+                .flatMap(chatHistoryRedisRepository::getChatHistory);
+    }
 }
