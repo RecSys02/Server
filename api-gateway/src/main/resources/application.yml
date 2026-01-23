@@ -29,6 +29,15 @@ spring:
               filters:
                 - StripPrefix=1
 
+springdoc:
+  swagger-ui:
+    urls:
+      - name: core
+        url: /core/v3/api-docs
+      - name: chat-server
+        url: /chat/v3/api-docs
+    path: /swagger-ui.html
+
 jwt:
   secret: ${JWT_SECRET}
 
@@ -73,3 +82,8 @@ gateway:
       - /chat/debug/**
       - /chat/swagger-ui/**
       - /chat/v3/api-docs/**
+      
+      ####### GATEWAY SWAGGER #######
+      - /swagger-ui/**
+      - /v3/api-docs/**
+      - /webjars/**
