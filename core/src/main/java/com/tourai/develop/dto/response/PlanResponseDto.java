@@ -14,6 +14,7 @@ public record PlanResponseDto(
         Long userId,
         String userName,
         String name,
+        String province,
         Boolean isPrivate,
         Integer likeCount,
         Boolean isActive,
@@ -28,6 +29,7 @@ public record PlanResponseDto(
                 .userId(plan.getUser().getId())
                 .userName(plan.getUser().getUserName())
                 .name(plan.getName())
+                .province(plan.getProvince())
                 .isPrivate(plan.getIsPrivate())
                 .likeCount(plan.getLikeCount())
                 .isActive(isActive)

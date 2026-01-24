@@ -212,6 +212,8 @@ public class PlanServiceTest {
                 .password("asdfasdf")
                 .build();
         userRepository.save(user);
+        user.addTag(Tag.builder().name("Tag1").tagType(TagType.CAFE).build());
+        user.addTag(Tag.builder().name("Tag2").tagType(TagType.RESTAURANT).build());
 
         System.out.println(user.getId());
 
@@ -241,27 +243,12 @@ public class PlanServiceTest {
                 new SelectedPlaceDto(99992L, Category.TOURSPOT, Province.SEOUL)
         );
 
-        // Tags (Tag 엔티티는 category가 아니라 tagType을 사용)
-        Tag tag1 = Tag.builder()
-                .name("Tag1")
-                .tagType(TagType.CAFE)
-                .build();
-
-        Tag tag2 = Tag.builder()
-                .name("Tag2")
-                .tagType(TagType.RESTAURANT)
-                .build();
-
-        tagRepository.saveAll(List.of(tag1, tag2));
-        List<Long> tagIds = List.of(tag1.getId(), tag2.getId());
-
         // Plan
         PlanRequestDto dto = PlanRequestDto.builder()
                 .name("Plan1")
                 .startDate(LocalDate.of(2026, 1, 2))
                 .endDate(LocalDate.of(2026, 1, 2))
                 .selectedPlaces(selectedPlaces)
-                .tagIds(tagIds)
                 .province(Province.SEOUL)
                 .isPrivate(true)
                 .build();
