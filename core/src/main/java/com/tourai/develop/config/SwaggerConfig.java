@@ -15,16 +15,13 @@ import java.util.List;
 @Configuration
 public class SwaggerConfig {
 
-    @Value("${springdoc.swagger-ui.server-url:http://localhost:8000/core}")
-    private String serverUrl;
-
     @Bean
     public OpenAPI openAPI() {
         String securitySchemeName = "bearerAuth";
         return new OpenAPI()
                 .info(apiInfo())
-                .servers(List.of(new Server().url(serverUrl).description("Gateway Server")))
                 .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
+                .addServersItem(new Server().url("/core"))
                 .components(new Components()
                         .addSecuritySchemes(securitySchemeName,
                                 new SecurityScheme()
