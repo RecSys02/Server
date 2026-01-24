@@ -96,7 +96,10 @@ gemini:
   api-key: ${GEMINI_API_KEY}
 
 cors:
-  allowed-origins: https://recsys02client.vercel.app,http://localhost:3000
+  allowed-origins:
+    - https://recsys02client.vercel.app
+    - http://localhost:3000
+    - http://localhost:8000
 
 
 app:

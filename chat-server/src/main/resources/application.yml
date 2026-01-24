@@ -39,3 +39,9 @@ user-context:
 
 jwt:
   secret: ${JWT_SECRET}
+
+cors:
+  allowed-origins:
+    - https://recsys02client.vercel.app
+    - http://localhost:3000
+    - http://localhost:8000
