@@ -1,3 +1,12 @@
 logging:
   level:
     root: INFO
+
+cors:
+  allowed-origins:
+    - https://recsys02client.vercel.app
+    - http://43.200.93.100:8000
+
+springdoc:
+  swagger-ui:
+    server-url: http://43.200.93.100:8000/chat

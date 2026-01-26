@@ -7,7 +7,7 @@ import com.tourai.develop.dto.request.RecommendationRequestDto;
 import java.util.List;
 
 public record RecommendationResponseDto(
-        List<RecommendedPlaceDto> tourspot,
+        List<RecommendedPlaceDto> tourspots,
         List<RecommendedPlaceDto> restaurants,
         List<RecommendedPlaceDto> cafes
 ) {

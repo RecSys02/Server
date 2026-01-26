@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @Slf4j
@@ -29,11 +30,11 @@ public class PlanController {
 
     @PostMapping
     @Operation(summary = "Plan 생성", description = "생성형 AI를 이용해 새로운 여행 계획을 생성합니다.")
-    public ResponseEntity<Long> createPlan(
+    public ResponseEntity<Map<String, Long>> createPlan(
             @RequestBody @Valid PlanRequestDto planRequestDto,
             @AuthenticationPrincipal UserDetails userDetails) {
         Plan plan = planService.savePlan(planRequestDto, userDetails.getUsername());
-        return ResponseEntity.ok(plan.getId());
+        return ResponseEntity.ok(Map.of("id", plan.getId()));
     }
 
     @GetMapping

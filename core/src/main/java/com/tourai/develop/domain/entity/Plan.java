@@ -44,6 +44,9 @@ public class Plan {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
+    @Column(name = "province")
+    private String province;
+
     @Column(name = "is_private")
     private Boolean isPrivate;
 

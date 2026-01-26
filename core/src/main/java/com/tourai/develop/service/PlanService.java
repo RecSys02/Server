@@ -147,6 +147,7 @@ public class PlanService {
         Plan plan = Plan.builder()
                 .user(findUser)
                 .name(planRequestDto.name())
+                .province(planRequestDto.province().name())
                 .isPrivate(planRequestDto.isPrivate())
                 .schedule(schedule)
                 .build();

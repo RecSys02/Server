@@ -44,3 +44,6 @@ out/
 
 # data
 src/main/resources/data/
+
+*.tar
+*.tar.gz
