@@ -1,10 +1,12 @@
 package com.tourai.develop.service;
 
+import com.nimbusds.openid.connect.sdk.UserInfoResponse;
 import com.tourai.develop.domain.entity.Tag;
 import com.tourai.develop.domain.entity.User;
 import com.tourai.develop.domain.entity.UserTag;
 import com.tourai.develop.domain.enumType.TagType;
 import com.tourai.develop.dto.*;
+import com.tourai.develop.dto.response.UserInfoResponseDto;
 import com.tourai.develop.exception.BusinessException;
 import com.tourai.develop.exception.enumType.ErrorCode;
 import com.tourai.develop.kafka.publisher.UserContextEventPublisher;
@@ -114,6 +116,34 @@ public class UserService {
                 preferredCafeTypes,
                 avoid,
                 activityLevel
+        );
+    }
+
+    @Transactional
+    public void deleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        userRepository.delete(user);
+    }
+
+
+    public UserInfoResponseDto getUserInfo(Long userId) {
+        User user = userRepository.findByIdWithTags(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        List<Long> tagIds = user.getUserTags().stream()
+                .map(UserTag::getTag)
+                .filter(Objects::nonNull)
+                .map(Tag::getId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        return new UserInfoResponseDto(
+                user.getEmail(),
+                user.getUserName(),
+                user.getImage(),
+                tagIds
         );
     }
 
