@@ -1,6 +1,7 @@
 package com.tourai.develop.controller;
 
 import com.tourai.develop.dto.*;
+import com.tourai.develop.dto.response.UserInfoResponseDto;
 import com.tourai.develop.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -48,4 +49,23 @@ public class UserController {
         Long userId = customUserDetails.getUserId();
         return ResponseEntity.ok(userService.getMe(userId));
     }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteMe(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails
+    ) {
+        Long userId = customUserDetails.getUserId();
+        userService.deleteUser(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/info")
+    public ResponseEntity<UserInfoResponseDto> getUserInfo(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails
+    ) {
+        Long userId = customUserDetails.getUserId();
+        return ResponseEntity.ok(userService.getUserInfo(userId));
+
+    }
+
 }
