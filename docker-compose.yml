@@ -189,16 +189,16 @@ services:
       timeout: 10s
       retries: 60
 
-  mailhog:
-    image: mailhog/mailhog:latest
-    platform: linux/amd64
-    container_name: mailhog
-    restart: always
-    ports:
-      - "8025:8025"
-      - "1025:1025"
-    networks:
-      - tourai_backend
+#  mailhog:
+#    image: mailhog/mailhog:latest
+#    platform: linux/amd64
+#    container_name: mailhog
+#    restart: always
+#    ports:
+#      - "8025:8025"
+#      - "1025:1025"
+#    networks:
+#      - tourai_backend
 
   # === Core Spring Boot ===
   core:
@@ -215,6 +215,8 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka1:9092,kafka2:9092,kafka3:9092
+
+      - PUBLIC_BASE_URL=http://43.200.93.100:8000
 
       - AI_BASE_URL=${AI_BASE_URL}
       - JWT_SECRET=${JWT_SECRET}
