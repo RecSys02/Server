@@ -4,13 +4,11 @@ import com.tourai.develop.aop.annotation.UserActionLog;
 import com.tourai.develop.domain.entity.*;
 import com.tourai.develop.domain.enumType.Action;
 import com.tourai.develop.dto.DailySchedule;
+import com.tourai.develop.dto.SelectedPlaceDto;
 import com.tourai.develop.dto.request.PlanRequestDto;
 import com.tourai.develop.dto.response.PlanResponseDto;
 import com.tourai.develop.kafka.publisher.PlanLikeEventPublisher;
-import com.tourai.develop.repository.PlanLikeRepository;
-import com.tourai.develop.repository.PlanRepository;
-import com.tourai.develop.repository.TagRepository;
-import com.tourai.develop.repository.UserRepository;
+import com.tourai.develop.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +29,7 @@ public class PlanService {
     private final PlanLikeRepository planLikeRepository;
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
+    private final PlaceRepository placeRepository;
 
     private final PlanAiService planAiService;
     private final PlanLikeEventPublisher planLikeEventPublisher;
@@ -143,6 +142,18 @@ public class PlanService {
         // 스케줄 생성
         List<DailySchedule> schedule = planAiService.createSchedule(planRequestDto.selectedPlaces(), planRequestDto.startDate(), (int) duration);
 
+        // 대표 이미지 설정
+        String planImage = null;
+        for (SelectedPlaceDto selectedPlace : planRequestDto.selectedPlaces()) {
+            Optional<Place> place = placeRepository.findByPlaceIdAndCategoryAndProvince(
+                    selectedPlace.placeId(), selectedPlace.category(), selectedPlace.province());
+            
+            if (place.isPresent() && place.get().getImages() != null && !place.get().getImages().isEmpty()) {
+                planImage = place.get().getImages().get(0);
+                break; // 첫 번째로 발견된 이미지를 사용하고 루프 종료
+            }
+        }
+
         // plan 생성
         Plan plan = Plan.builder()
                 .user(findUser)
@@ -150,6 +161,7 @@ public class PlanService {
                 .province(planRequestDto.province().name())
                 .isPrivate(planRequestDto.isPrivate())
                 .schedule(schedule)
+                .image(planImage)
                 .build();
 
         // plan에 tags 추가 (User의 태그를 가져와서 추가)

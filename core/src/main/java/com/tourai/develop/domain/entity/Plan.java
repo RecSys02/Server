@@ -50,6 +50,9 @@ public class Plan {
     @Column(name = "is_private")
     private Boolean isPrivate;
 
+    @Column(name = "image")
+    private String image;
+
     @Formula("(select count(*) from plan_like pl where pl.plan_id = id)")
     private int likeCount;
 
