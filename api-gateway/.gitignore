@@ -35,15 +35,3 @@ out/
 
 ### VS Code ###
 .vscode/
-
-# 환경변수
-.env
-
-# 맥
-.DS_Store
-
-# data
-src/main/resources/data/
-
-*.tar
-*.tar.gz

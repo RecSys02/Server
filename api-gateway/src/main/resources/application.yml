@@ -1,0 +1,89 @@
+server:
+  port: 8000
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: core
+              uri: ${CORE_BASE_URL:http://localhost:8080}
+              predicates:
+                - Path=/core/**
+              filters:
+                - StripPrefix=1
+                - PreserveHostHeader
+                - SetRequestHeader=X-Forwarded-Prefix, /core
+                - AddRequestHeader=X-Forwarded-Proto, http
+                - AddRequestHeader=X-Forwarded-Port, 8000
+
+
+            - id: chat-server
+              uri: ${CHAT_BASE_URL:http://localhost:8082}
+              predicates:
+                - Path=/chat/**
+              filters:
+                - StripPrefix=1
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: core
+        url: /core/v3/api-docs
+      - name: chat-server
+        url: /chat/v3/api-docs
+    path: /swagger-ui.html
+
+jwt:
+  secret: ${JWT_SECRET}
+
+cors:
+  allowed-origins:
+    - https://recsys02client.vercel.app
+    - http://localhost:3000
+
+gateway:
+  auth:
+    permit-paths:
+      ####### CORE 서버 #######
+      # 1) auth/oauth2/error
+      - /core/auth/login
+      - /core/
+      - /core
+      - /core/auth/join
+      - /core/auth/logout
+      - /core/auth/reissue
+      - /core/oauth2/**
+      - /core/login/oauth2/**
+      - /core/error
+      - /core/auth/check/name
+      - /core/auth/check/email
+
+      # 2) GET 공개 API (Core에서 permitAll 한 것들)
+      - /core/api/plans
+      - /core/api/plans/popular
+      - /core/api/plans/*
+      - /core/api/plans/user/*
+      - /core/api/places/*
+      - /core/api/tags
+      - /core/api/tags/*
+
+      # 3) swagger
+      - /core/swagger-ui/**
+      - /core/v3/api-docs/**
+
+      ####### CHAT 서버 #######
+      - /chat
+      - /chat/
+      - /chat/debug/**
+      - /chat/swagger-ui/**
+      - /chat/v3/api-docs/**
+      
+      ####### GATEWAY SWAGGER #######
+      - /swagger-ui/**
+      - /v3/api-docs/**
+      - /webjars/**

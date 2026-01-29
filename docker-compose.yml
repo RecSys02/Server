@@ -14,44 +14,11 @@ services:
     restart: unless-stopped
     networks:
       - tourai_backend
-
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: tourai-server:latest
-    platform: linux/amd64
-    container_name: api
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
-      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
-      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
-      - SPRING_DATA_REDIS_HOST=redis
-      - AI_BASE_URL=${AI_BASE_URL}
-      - JWT_SECRET=${JWT_SECRET}
-      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
-      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-    ports:
-      - "8080:8080"
-    depends_on:
-      - postgres
-      - redis
-    networks:
-      - tourai_backend
-
-  mailhog:
-    image: mailhog/mailhog:latest
-    platform: linux/amd64
-    container_name: mailhog
-    restart: always
-    ports:
-      - "8025:8025"
-      - "1025:1025"
-    networks:
-      - tourai_backend
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
   redis:
     image: redis:7-alpine
@@ -60,9 +27,272 @@ services:
     restart: unless-stopped
     ports:
       - "6379:6379"
-    command: ["redis-server", "--appendonly", "yes"]
+    command: [ "redis-server", "--appendonly", "yes" ]
     volumes:
       - redis_data:/data
+    networks:
+      - tourai_backend
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis2:
+    image: redis:7-alpine
+    platform: linux/amd64
+    container_name: redis2
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    command: [ "redis-server", "--appendonly", "yes" ]
+    volumes:
+      - redis2_data:/data
+    networks:
+      - tourai_backend
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  kafka1:
+    image: apache/kafka:4.1.0
+    container_name: kafka1
+    hostname: kafka1
+    environment:
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=broker,controller
+
+      # 3-node controller quorum (KRaft)
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka1:9093,2@kafka2:9093,3@kafka3:9093
+
+      # listeners
+      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka1:9092,PLAINTEXT_HOST://localhost:29092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+
+      # same cluster id
+      - KAFKA_CLUSTER_ID=${KAFKA_CLUSTER_ID}
+
+      # ✅ align kafka log dir with mounted volume
+      - KAFKA_LOG_DIRS=/var/lib/kafka/data
+      - KAFKA_DELETE_TOPIC_ENABLE=true
+      - KAFKA_CFG_DELETE_TOPIC_ENABLE=true
+
+
+      # replication (internal topics)
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=3
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=3
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=2
+      - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
+
+    ports:
+      - "29092:29092"
+
+    volumes:
+      - kafka1_data:/var/lib/kafka/data
+    restart: unless-stopped
+    networks:
+      - tourai_backend
+    healthcheck:
+      # ✅ use service hostname + give more time
+      test: [ "CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka1:9092 >/dev/null 2>&1" ]
+      interval: 10s
+      timeout: 10s
+      retries: 60
+
+  kafka2:
+    image: apache/kafka:4.1.0
+    container_name: kafka2
+    hostname: kafka2
+    environment:
+      - KAFKA_NODE_ID=2
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka1:9093,2@kafka2:9093,3@kafka3:9093
+
+      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:39092,CONTROLLER://0.0.0.0:9093
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka2:9092,PLAINTEXT_HOST://localhost:39092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+
+      - KAFKA_CLUSTER_ID=${KAFKA_CLUSTER_ID}
+
+      # ✅ align kafka log dir with mounted volume
+      - KAFKA_LOG_DIRS=/var/lib/kafka/data
+      - KAFKA_DELETE_TOPIC_ENABLE=true
+      - KAFKA_CFG_DELETE_TOPIC_ENABLE=true
+
+
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=3
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=3
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=2
+      - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
+
+    ports:
+      - "39092:39092"
+
+    volumes:
+      - kafka2_data:/var/lib/kafka/data
+    restart: unless-stopped
+    networks:
+      - tourai_backend
+    healthcheck:
+      # ✅ use service hostname + give more time
+      test: [ "CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka2:9092 >/dev/null 2>&1" ]
+      interval: 10s
+      timeout: 10s
+      retries: 60
+
+  kafka3:
+    image: apache/kafka:4.1.0
+    container_name: kafka3
+    hostname: kafka3
+    environment:
+      - KAFKA_NODE_ID=3
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka1:9093,2@kafka2:9093,3@kafka3:9093
+
+      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:49092,CONTROLLER://0.0.0.0:9093
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka3:9092,PLAINTEXT_HOST://localhost:49092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+
+      - KAFKA_CLUSTER_ID=${KAFKA_CLUSTER_ID}
+
+      # ✅ align kafka log dir with mounted volume
+      - KAFKA_LOG_DIRS=/var/lib/kafka/data
+      - KAFKA_DELETE_TOPIC_ENABLE=true
+      - KAFKA_CFG_DELETE_TOPIC_ENABLE=true
+
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=3
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=3
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=2
+      - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
+
+    ports:
+      - "49092:49092"
+
+    volumes:
+      - kafka3_data:/var/lib/kafka/data
+    restart: unless-stopped
+    networks:
+      - tourai_backend
+    healthcheck:
+      # ✅ use service hostname + give more time
+      test: [ "CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka3:9092 >/dev/null 2>&1" ]
+      interval: 10s
+      timeout: 10s
+      retries: 60
+
+#  mailhog:
+#    image: mailhog/mailhog:latest
+#    platform: linux/amd64
+#    container_name: mailhog
+#    restart: always
+#    ports:
+#      - "8025:8025"
+#      - "1025:1025"
+#    networks:
+#      - tourai_backend
+
+  # === Core Spring Boot ===
+  core:
+    build:
+      context: ./core
+      dockerfile: Dockerfile
+    image: tourai-core:latest
+    platform: linux/amd64
+    container_name: core
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka1:9092,kafka2:9092,kafka3:9092
+
+      - PUBLIC_BASE_URL=http://34.64.78.140:8000
+
+      - AI_BASE_URL=${AI_BASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
+      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - SPRING_MAIL_HOST=mailhog
+      - SPRING_MAIL_PORT=1025
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka1:
+        condition: service_healthy
+      kafka2:
+        condition: service_healthy
+      kafka3:
+        condition: service_healthy
+    networks:
+      - tourai_backend
+
+  # === API Gateway ===
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    image: tourai-api-gateway:latest
+    platform: linux/amd64
+    container_name: api-gateway
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - CORE_BASE_URL=http://core:8080
+      - CHAT_BASE_URL=http://chat-server:8082
+      - JWT_SECRET=${JWT_SECRET}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - core
+    networks:
+      - tourai_backend
+
+  # === Chat Server ===
+  chat-server:
+    build:
+      context: ./chat-server
+      dockerfile: Dockerfile
+    image: tourai-chat:latest
+    platform: linux/amd64
+    container_name: chat-server
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka1:9092,kafka2:9092,kafka3:9092
+      - AI_BASE_URL=${AI_BASE_URL}
+      - CORE_BASE_URL=http://core:8080
+
+      - SPRING_DATA_REDIS_HOST=redis2
+      - SPRING_DATA_REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET}
+    ports:
+      - "8082:8082"
+    depends_on:
+      kafka1:
+        condition: service_healthy
+      kafka2:
+        condition: service_healthy
+      kafka3:
+        condition: service_healthy
+      core:
+        condition: service_started
+      redis2:
+        condition: service_healthy
     networks:
       - tourai_backend
 
@@ -73,3 +303,7 @@ networks:
 volumes:
   postgres_data:
   redis_data:
+  redis2_data:
+  kafka1_data:
+  kafka2_data:
+  kafka3_data:
