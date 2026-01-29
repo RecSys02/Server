@@ -87,7 +87,7 @@ springdoc:
 data:
   sync:
     place:
-      filepath: data/place/poi_seoul_251224.json
+      filepath: data/place/poi_seoul_260129.json
     tag:
       filepath: data/tags.json
 

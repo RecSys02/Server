@@ -1,0 +1,64 @@
+name: CI/CD
+
+on:
+  push:
+    branches: ["main", "chore/setup-ci-cd"]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and Save Docker Images
+        run: |
+          chmod +x build-and-save-images.sh
+          ./build-and-save-images.sh
+          # Fix permissions: docker save creates file as root, so we need to make it readable
+          sudo chmod 644 tourai-images.tar
+
+      - name: Create .env file
+        run: |
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
+          echo "KAFKA_CLUSTER_ID=${{ secrets.KAFKA_CLUSTER_ID }}" >> .env
+          echo "AI_BASE_URL=${{ secrets.AI_BASE_URL }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }}" >> .env
+          echo "NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}" >> .env
+          echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+          echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
+          
+      - name: Copy files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "tourai-images.tar,docker-compose.yml,.env"
+          target: "tourai-deploy" # Relative path: creates ~/tourai-deploy
+          timeout: "10m"
+          
+      - name: Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            # Move to the deployment directory
+            cd tourai-deploy
+            
+            echo "=== Load docker images ==="
+            docker load -i tourai-images.tar
+            
+            echo "=== Starting services ==="
+            # .env file is in the current directory
+            docker compose up -d --no-build
+            
+            # Clean up
+            rm tourai-images.tar
+            docker image prune -f
