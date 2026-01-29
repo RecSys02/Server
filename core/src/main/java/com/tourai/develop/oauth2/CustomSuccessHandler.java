@@ -42,7 +42,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         response.addCookie(jwtUtil.createCookie("refresh", refreshToken, refreshTokenExpiredMs));
         refreshTokenService.save(name, refreshToken, Duration.ofMillis(refreshTokenExpiredMs));
 
-        response.sendRedirect("http://localhost:8080"); //추후 프론트 서버로 redirect 해야됨 수정 필요!
+        response.sendRedirect("https://recsys02client.vercel.app/oauth");
 
     }
 }
