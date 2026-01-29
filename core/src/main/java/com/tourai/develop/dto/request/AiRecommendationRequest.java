@@ -7,6 +7,7 @@ import com.tourai.develop.dto.AiSelectedPlaceDto;
 import com.tourai.develop.dto.SelectedPlaceDto;
 
 import java.util.List;
+
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public record AiRecommendationRequest(
 
@@ -22,6 +23,8 @@ public record AiRecommendationRequest(
 
         //Ai 추천 최초 실행 시 입력받는 정보
         String region,
+        List<String> accomAddress,
+
         List<String> companion,
         String budget,
 

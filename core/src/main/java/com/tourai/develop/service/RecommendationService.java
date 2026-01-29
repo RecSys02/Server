@@ -63,6 +63,7 @@ public class RecommendationService {
                 avoid,
                 activityLevel,
                 recommendationRequestDto.region(),
+                recommendationRequestDto.accomAddress(),
                 recommendationRequestDto.companion(),
                 recommendationRequestDto.budget(),
                 aiHistoryPlaces,

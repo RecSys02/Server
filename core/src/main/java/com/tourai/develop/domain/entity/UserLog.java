@@ -24,7 +24,10 @@ public class UserLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false,
+            foreignKey = @ForeignKey(
+                    foreignKeyDefinition = "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE"
+            ))
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;
 
