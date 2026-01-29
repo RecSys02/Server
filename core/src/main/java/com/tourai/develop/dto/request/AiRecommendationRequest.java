@@ -23,7 +23,7 @@ public record AiRecommendationRequest(
 
         //Ai 추천 최초 실행 시 입력받는 정보
         String region,
-        List<String> accomAddress,
+        String accomAddress,
 
         List<String> companion,
         String budget,
