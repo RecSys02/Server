@@ -189,18 +189,6 @@ services:
       timeout: 10s
       retries: 60
 
-  #  mailhog:
-  #    image: mailhog/mailhog:latest
-  #    platform: linux/amd64
-  #    container_name: mailhog
-  #    restart: always
-  #    ports:
-  #      - "8025:8025"
-  #      - "1025:1025"
-  #    networks:
-  #      - tourai_backend
-
-  # === Core Spring Boot ===
   core:
     build:
       context: ./core
