@@ -15,6 +15,8 @@ jobs:
         run: |
           chmod +x build-and-save-images.sh
           ./build-and-save-images.sh
+          # Fix permissions: docker save creates file as root, so we need to make it readable
+          sudo chmod 644 tourai-images.tar
 
       - name: Create .env file
         run: |
