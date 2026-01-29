@@ -11,6 +11,7 @@ import java.util.List;
 public record RecommendationRequestDto(
         //Ai 추천 최초 실행 시 입력받는 정보
         String region,
+        String accomAddress,
         List<String> companion,
         String budget,
 
@@ -20,4 +21,5 @@ public record RecommendationRequestDto(
 
         //사용자가 마지막으로 선택한 장소들
         List<SelectedPlaceDto> selectedPlaces
-) {}
+) {
+}
