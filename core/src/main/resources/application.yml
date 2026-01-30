@@ -97,6 +97,10 @@ ai:
 gemini:
   api-key: ${GEMINI_API_KEY}
 
+clova:
+  api-key: ${CLOVA_API_KEY}
+  base-url: ${CLOVA_BASE_URL}
+
 cors:
   allowed-origins:
     - https://recsys02client.vercel.app

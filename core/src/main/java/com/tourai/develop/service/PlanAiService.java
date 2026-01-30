@@ -8,7 +8,7 @@ import com.tourai.develop.domain.entity.Place;
 import com.tourai.develop.dto.DailySchedule;
 import com.tourai.develop.dto.SelectedPlaceDto;
 import com.tourai.develop.repository.PlaceRepository;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +18,6 @@ import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class PlanAiService {
 
     private final PlaceRepository placeRepository;
@@ -26,11 +25,23 @@ public class PlanAiService {
     private final String planInstructor;
     private final ObjectMapper objectMapper;
 
+    public PlanAiService(
+            PlaceRepository placeRepository,
+            @Qualifier("clovaTextGenerator") TextGenerator textGenerator,
+            String planInstructor,
+            ObjectMapper objectMapper
+    ) {
+        this.placeRepository = placeRepository;
+        this.textGenerator = textGenerator;
+        this.planInstructor = planInstructor;
+        this.objectMapper = objectMapper;
+    }
+
     public List<DailySchedule> createSchedule(List<SelectedPlaceDto> selectedPlaces, LocalDate startDate, Integer duration) {
 
         String prompt = makePromptFromPlaces(selectedPlaces, startDate, duration);
 
-        String jsonString = textGenerator.generate("gemini-2.5-flash", planInstructor, prompt);
+        String jsonString = textGenerator.generate("HCX-007", planInstructor, prompt);
 
         return convertListFromString(jsonString);
     }
