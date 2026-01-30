@@ -32,6 +32,8 @@ jobs:
           echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
           echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
           echo "SPRING_JPA_HIBERNATE_DDL_AUTO=${{ secrets.SPRING_JPA_HIBERNATE_DDL_AUTO }}" >> .env
+          echo "CLOVA_API_KEY=${{ secrets.CLOVA_API_KEY }}" >> .env
+          echo "CLOVA_BASE_URL=${{ secrets.CLOVA_BASE_URL }}" >> .env
 
       - name: Copy files to server
         uses: appleboy/scp-action@v0.1.7

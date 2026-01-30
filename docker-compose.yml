@@ -216,6 +216,8 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - SPRING_MAIL_HOST=mailhog
       - SPRING_MAIL_PORT=1025
+      - CLOVA_API_KEY=${CLOVA_API_KEY}
+      - CLOVA_BASE_URL=${CLOVA_BASE_URL}
     ports:
       - "8080:8080"
     depends_on:
