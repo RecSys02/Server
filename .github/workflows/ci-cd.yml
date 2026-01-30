@@ -2,7 +2,7 @@ name: CI/CD
 
 on:
   push:
-    branches: ["main", "chore/setup-ci-cd"]
+    branches: ["main", "develop-msa", "chore/setup-ci-cd"]
   workflow_dispatch:
 
 jobs:
