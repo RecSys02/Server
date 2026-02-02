@@ -1,22 +1,33 @@
 package com.example.chatserver.client;
 
+import com.example.chatserver.dto.PlaceResponseDto;
 import com.example.chatserver.dto.UserContextDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
-public class UserContextClient {
+public class CoreClient {
 
     private final WebClient coreWebClient;
 
-    public Mono<UserContextDto> fetch(Long userId) {
+    public Mono<UserContextDto> fetchUserContext(Long userId) {
         return coreWebClient.get()
                 .uri("/internal/users/context/{userId}", userId)
                 .retrieve()
                 .bodyToMono(UserContextDto.class);
     }
 
+    public Mono<List<PlaceResponseDto>> getPlacesBulk(List<Long> placeIds) {
+        return coreWebClient.post()
+                .uri("/api/places/bulk")
+                .bodyValue(placeIds)
+                .retrieve()
+                .bodyToFlux(PlaceResponseDto.class)
+                .collectList();
+    }
 }

@@ -75,6 +75,7 @@ public class SecurityConfig {
                                 "/api/places/*",
                                 "/api/tags",
                                 "/api/tags/*").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/places/bulk").permitAll() // Bulk API 허용 추가
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/internal/**").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN")
