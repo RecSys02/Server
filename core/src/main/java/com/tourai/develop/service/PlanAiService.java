@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tourai.develop.client.genai.TextGenerator;
 import com.tourai.develop.domain.entity.Place;
+import com.tourai.develop.dto.AiScheduleResponse;
 import com.tourai.develop.dto.DailySchedule;
 import com.tourai.develop.dto.SelectedPlaceDto;
 import com.tourai.develop.repository.PlaceRepository;
@@ -37,13 +38,13 @@ public class PlanAiService {
         this.objectMapper = objectMapper;
     }
 
-    public List<DailySchedule> createSchedule(List<SelectedPlaceDto> selectedPlaces, LocalDate startDate, Integer duration) {
+    public AiScheduleResponse createSchedule(List<SelectedPlaceDto> selectedPlaces, LocalDate startDate, Integer duration) {
 
         String prompt = makePromptFromPlaces(selectedPlaces, startDate, duration);
 
         String jsonString = textGenerator.generate("HCX-007", planInstructor, prompt);
 
-        return convertListFromString(jsonString);
+        return convertFromString(jsonString);
     }
 
     public String makePromptFromPlaces(List<SelectedPlaceDto> selectedPlaces, LocalDate startDate, Integer duration) {
@@ -73,9 +74,9 @@ public class PlanAiService {
         return  sb1.toString();
     }
 
-    public List<DailySchedule> convertListFromString(String jsonString) {
+    public AiScheduleResponse convertFromString(String jsonString) {
         try {
-            return objectMapper.readValue(jsonString, new TypeReference<>() {});
+            return objectMapper.readValue(jsonString, AiScheduleResponse.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
