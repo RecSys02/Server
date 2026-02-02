@@ -3,6 +3,7 @@ package com.tourai.develop.service;
 import com.tourai.develop.aop.annotation.UserActionLog;
 import com.tourai.develop.domain.entity.*;
 import com.tourai.develop.domain.enumType.Action;
+import com.tourai.develop.dto.AiScheduleResponse;
 import com.tourai.develop.dto.DailySchedule;
 import com.tourai.develop.dto.SelectedPlaceDto;
 import com.tourai.develop.dto.request.PlanRequestDto;
@@ -140,7 +141,14 @@ public class PlanService {
         }
 
         // 스케줄 생성
-        List<DailySchedule> schedule = planAiService.createSchedule(planRequestDto.selectedPlaces(), planRequestDto.startDate(), (int) duration);
+        AiScheduleResponse aiResponse = planAiService.createSchedule(planRequestDto.selectedPlaces(), planRequestDto.startDate(), (int) duration);
+        List<DailySchedule> schedule = aiResponse.getSchedule();
+        
+        // 제목 설정 (요청에 있으면 사용, 없으면 AI 생성 제목 사용)
+        String title = planRequestDto.name();
+        if (title == null || title.trim().isEmpty()) {
+            title = aiResponse.getTitle();
+        }
 
         // 대표 이미지 설정
         String planImage = null;
@@ -157,7 +165,7 @@ public class PlanService {
         // plan 생성
         Plan plan = Plan.builder()
                 .user(findUser)
-                .name(planRequestDto.name())
+                .name(title)
                 .province(planRequestDto.province().name())
                 .isPrivate(planRequestDto.isPrivate())
                 .schedule(schedule)

@@ -13,7 +13,6 @@ public record PlanRequestDto(
         @NotNull(message = "최소 하나 이상의 장소를 선택하여야 합니다.")
         List<SelectedPlaceDto> selectedPlaces,
 
-        @NotNull(message = "Plan 이름은 필수입니다.")
         String name,
 
         @NotNull(message = "여행 시작 날짜는 필수입니다.")
