@@ -30,6 +30,12 @@ public class PlaceService {
         return PlaceResponseDto.from(place);
     }
 
+    public List<PlaceResponseDto> getPlacesByIds(List<Long> placeIds) {
+        return placeRepository.findAllByPlaceIdIn(placeIds).stream()
+                .map(PlaceResponseDto::from)
+                .toList();
+    }
+
     /**
      * 내부 데이터 동기화 메서드
      * 1. 리스트에 없는 DB 데이터는 삭제 (Delete)

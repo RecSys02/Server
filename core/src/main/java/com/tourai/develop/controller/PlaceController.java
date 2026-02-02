@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/places")
@@ -25,5 +27,11 @@ public class PlaceController {
             @RequestParam Category category,
             @RequestParam Province province) {
         return ResponseEntity.ok(placeService.getPlaceDetail(placeId, category, province));
+    }
+
+    @PostMapping("/bulk")
+    @Operation(summary = "Place 일괄 조회", description = "장소 ID 리스트를 받아 해당하는 장소들의 상세 정보를 일괄 조회합니다.")
+    public ResponseEntity<List<PlaceResponseDto>> getPlacesBulk(@RequestBody List<Long> placeIds) {
+        return ResponseEntity.ok(placeService.getPlacesByIds(placeIds));
     }
 }
