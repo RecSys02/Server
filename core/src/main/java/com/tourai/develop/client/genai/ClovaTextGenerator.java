@@ -1,5 +1,7 @@
 package com.tourai.develop.client.genai;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -10,6 +12,8 @@ import java.util.UUID;
 
 @Component
 public class ClovaTextGenerator implements TextGenerator {
+
+    private static final Logger log = LoggerFactory.getLogger(ClovaTextGenerator.class);
 
     private final WebClient webClient;
     private final String apiKey;
@@ -60,6 +64,10 @@ public class ClovaTextGenerator implements TextGenerator {
     private String extractContent(Map response) {
         if (response != null && response.get("result") instanceof Map<?, ?> result) {
             if (result.get("message") instanceof Map<?, ?> message) {
+                Object thinkContent = message.get("thinkContent");
+                if (thinkContent != null) {
+                    log.info("Clova Think Content: {}", thinkContent);
+                }
                 return (String) message.get("content");
             }
         }
