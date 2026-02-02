@@ -64,9 +64,9 @@ public class ClovaTextGenerator implements TextGenerator {
     private String extractContent(Map response) {
         if (response != null && response.get("result") instanceof Map<?, ?> result) {
             if (result.get("message") instanceof Map<?, ?> message) {
-                Object thinkContent = message.get("thinkContent");
-                if (thinkContent != null) {
-                    log.info("Clova Think Content: {}", thinkContent);
+                Object thinkingContent = message.get("thinkingContent");
+                if (thinkingContent != null) {
+                    log.info("Clova Thinking Content: {}", thinkingContent);
                 }
                 return (String) message.get("content");
             }
