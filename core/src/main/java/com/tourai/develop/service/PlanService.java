@@ -9,6 +9,7 @@ import com.tourai.develop.dto.SelectedPlaceDto;
 import com.tourai.develop.dto.request.PlanRequestDto;
 import com.tourai.develop.dto.response.PlanResponseDto;
 import com.tourai.develop.kafka.publisher.PlanLikeEventPublisher;
+import com.tourai.develop.kafka.service.PlanRankingRedisService;
 import com.tourai.develop.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,14 +32,14 @@ public class PlanService {
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
     private final PlaceRepository placeRepository;
-
+    private final PlanRankingRedisService planRankingRedisService;
     private final PlanAiService planAiService;
     private final PlanLikeEventPublisher planLikeEventPublisher;
 
     public PlanResponseDto getPlanDetail(Long planId, String email) {
         Plan plan = planRepository.findById(planId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 planId 입니다: " + planId));
-        
+
         boolean isActive = false;
         if (email != null) {
             Optional<User> user = userRepository.findByEmail(email);
@@ -46,19 +47,19 @@ public class PlanService {
                 isActive = planLikeRepository.existsByPlanIdAndUserId(plan.getId(), user.get().getId());
             }
         }
-        
+
         return PlanResponseDto.from(plan, isActive);
     }
 
     public List<PlanResponseDto> getPublicPlans(LocalDate from, LocalDate to, String email) {
         LocalDateTime[] dateRange = getDateRange(from, to);
         List<Plan> plans = planRepository.findByIsPrivateFalseAndCreatedAtBetweenOrderByCreatedAtDesc(dateRange[0], dateRange[1]);
-        
+
         User user = null;
         if (email != null) {
             user = userRepository.findByEmail(email).orElse(null);
         }
-        
+
         final User finalUser = user;
         return plans.stream()
                 .map(plan -> {
@@ -74,7 +75,7 @@ public class PlanService {
     public List<PlanResponseDto> getPopularPlans(LocalDate from, LocalDate to, String email) {
         LocalDateTime[] dateRange = getDateRange(from, to);
         List<Plan> plans = planRepository.findTop6ByIsPrivateFalseAndCreatedAtBetweenOrderByLikeCountDesc(dateRange[0], dateRange[1]);
-        
+
         User user = null;
         if (email != null) {
             user = userRepository.findByEmail(email).orElse(null);
@@ -91,6 +92,39 @@ public class PlanService {
                 })
                 .collect(Collectors.toList());
     }
+
+    public List<PlanResponseDto> getPopularPlansFromRedis(LocalDate from, LocalDate to, String email) {
+        LocalDateTime[] dateRange = getDateRange(from, to);
+
+
+        //1) Redis ZSET 에서 top-6 planId 들 추출
+        List<Long> topKPlanIds = planRankingRedisService.getTopKPlans(6);
+        if (topKPlanIds.isEmpty()) return List.of();
+
+        //2) Postgres native query용 배열 변환
+        Long[] topKPlanIdsArray = topKPlanIds.toArray(Long[]::new);
+
+        //3) DB에서 IN 조회 + Redis 순서 유지 정렬
+        List<Plan> plans = planRepository.findPopularPlansByIdsOrdered(topKPlanIdsArray, dateRange[0], dateRange[1]);
+        if (plans.isEmpty()) return List.of();
+
+        User user = null;
+        if (email != null) {
+            user = userRepository.findByEmail(email).orElse(null);
+        }
+        final User finalUser = user;
+
+        return plans.stream()
+                .map(plan -> {
+                    boolean isActive = false;
+                    if (finalUser != null) {
+                        isActive = planLikeRepository.existsByPlanIdAndUserId(plan.getId(), finalUser.getId());
+                    }
+                    return PlanResponseDto.from(plan, isActive);
+                })
+                .toList();
+    }
+
 
     public List<PlanResponseDto> getMyPlans(String email, LocalDate from, LocalDate to) {
         User user = userRepository.findByEmail(email)
@@ -143,7 +177,7 @@ public class PlanService {
         // 스케줄 생성
         AiScheduleResponse aiResponse = planAiService.createSchedule(planRequestDto.selectedPlaces(), planRequestDto.startDate(), (int) duration);
         List<DailySchedule> schedule = aiResponse.getSchedule();
-        
+
         // 제목 설정 (요청에 있으면 사용, 없으면 AI 생성 제목 사용)
         String title = planRequestDto.name();
         if (title == null || title.trim().isEmpty()) {
@@ -155,7 +189,7 @@ public class PlanService {
         for (SelectedPlaceDto selectedPlace : planRequestDto.selectedPlaces()) {
             Optional<Place> place = placeRepository.findByPlaceIdAndCategoryAndProvince(
                     selectedPlace.placeId(), selectedPlace.category(), selectedPlace.province());
-            
+
             if (place.isPresent() && place.get().getImages() != null && !place.get().getImages().isEmpty()) {
                 planImage = place.get().getImages().get(0);
                 break; // 첫 번째로 발견된 이미지를 사용하고 루프 종료
