@@ -24,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ChatbotService {
 
-    private final WebClient chatbotWebClient;
+    private final WebClient fastApiWebClient;
     private final UserContextService userContextService;
     private final ChatHistoryRedisRepository chatHistoryRedisRepository;
     private final ChatContextRedisRepository chatContextRedisRepository;
@@ -73,7 +73,7 @@ public class ChatbotService {
 
                     // 1. 사용자 질문이 포함된 히스토리를 먼저 저장 (데이터 유실 방지)
                     return chatHistoryRedisRepository.saveChatHistory(userId, history)
-                            .thenMany(chatbotWebClient.post()
+                            .thenMany(fastApiWebClient.post()
                                     .uri("/chat/stream")
                                     .bodyValue(streamRequest)
                                     .retrieve()

@@ -10,4 +10,6 @@ import java.util.Optional;
 
 public interface PlaceRepository extends JpaRepository<Place, Long> {
     Optional<Place> findByPlaceIdAndCategoryAndProvince(Long placeId, Category category, Province province);
+
+    List<Place> findAllByPlaceIdIn(List<Long> placeIds);
 }
