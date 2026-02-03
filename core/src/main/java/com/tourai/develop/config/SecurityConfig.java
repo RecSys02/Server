@@ -70,6 +70,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/api/plans",
                                 "/api/plans/popular",
+                                "/api/plans/popular/fast",
                                 "/api/plans/*",
                                 "/api/plans/user/*",
                                 "/api/places/*",
