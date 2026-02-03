@@ -10,6 +10,7 @@ import com.tourai.develop.domain.entity.PlanLog;
 import com.tourai.develop.dto.AiScheduleResponse;
 import com.tourai.develop.dto.DailySchedule;
 import com.tourai.develop.dto.SelectedPlaceDto;
+import com.tourai.develop.dto.response.PlanLogResponseDto;
 import com.tourai.develop.repository.PlaceRepository;
 import com.tourai.develop.repository.PlanLogRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -74,6 +76,12 @@ public class PlanAiService {
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to serialize plan log data", e);
         }
+    }
+
+    public List<PlanLogResponseDto> getAllPlanLogs() {
+        return planLogRepository.findAll().stream()
+                .map(PlanLogResponseDto::from)
+                .collect(Collectors.toList());
     }
 
     public String makePromptFromPlaces(List<SelectedPlaceDto> selectedPlaces, LocalDate startDate, Integer duration) {
