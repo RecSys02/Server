@@ -3,12 +3,15 @@ package com.tourai.develop.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tourai.develop.client.genai.GenAiResponse;
 import com.tourai.develop.client.genai.TextGenerator;
 import com.tourai.develop.domain.entity.Place;
+import com.tourai.develop.domain.entity.PlanLog;
 import com.tourai.develop.dto.AiScheduleResponse;
 import com.tourai.develop.dto.DailySchedule;
 import com.tourai.develop.dto.SelectedPlaceDto;
 import com.tourai.develop.repository.PlaceRepository;
+import com.tourai.develop.repository.PlanLogRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,29 +25,55 @@ import java.util.List;
 public class PlanAiService {
 
     private final PlaceRepository placeRepository;
+    private final PlanLogRepository planLogRepository;
     private final TextGenerator textGenerator;
     private final String planInstructor;
     private final ObjectMapper objectMapper;
 
     public PlanAiService(
             PlaceRepository placeRepository,
+            PlanLogRepository planLogRepository,
             @Qualifier("clovaTextGenerator") TextGenerator textGenerator,
             String planInstructor,
             ObjectMapper objectMapper
     ) {
         this.placeRepository = placeRepository;
+        this.planLogRepository = planLogRepository;
         this.textGenerator = textGenerator;
         this.planInstructor = planInstructor;
         this.objectMapper = objectMapper;
     }
 
+    @Transactional
     public AiScheduleResponse createSchedule(List<SelectedPlaceDto> selectedPlaces, LocalDate startDate, Integer duration) {
 
         String prompt = makePromptFromPlaces(selectedPlaces, startDate, duration);
 
-        String jsonString = textGenerator.generate("HCX-007", planInstructor, prompt);
+        GenAiResponse response = textGenerator.generate("HCX-007", planInstructor, prompt);
+        String jsonString = response.getContent();
 
-        return convertFromString(jsonString);
+        AiScheduleResponse scheduleResponse = convertFromString(jsonString);
+
+        savePlanLog(selectedPlaces, response.getThinkingContent(), scheduleResponse.getSchedule());
+
+        return scheduleResponse;
+    }
+
+    private void savePlanLog(List<SelectedPlaceDto> selectedPlaces, String thinkingContent, List<DailySchedule> schedule) {
+        try {
+            String selectedPlacesJson = objectMapper.writeValueAsString(selectedPlaces);
+            String scheduleJson = objectMapper.writeValueAsString(schedule);
+
+            PlanLog planLog = PlanLog.builder()
+                    .selectedPlaces(selectedPlacesJson)
+                    .thinkingContent(thinkingContent)
+                    .schedule(scheduleJson)
+                    .build();
+
+            planLogRepository.save(planLog);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize plan log data", e);
+        }
     }
 
     public String makePromptFromPlaces(List<SelectedPlaceDto> selectedPlaces, LocalDate startDate, Integer duration) {

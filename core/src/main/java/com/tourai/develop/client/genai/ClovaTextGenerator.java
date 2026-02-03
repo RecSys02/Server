@@ -30,7 +30,7 @@ public class ClovaTextGenerator implements TextGenerator {
     }
 
     @Override
-    public String generate(String model, String instruction, String textInput) {
+    public GenAiResponse generate(String model, String instruction, String textInput) {
         String requestId = UUID.randomUUID().toString();
 
         Map<String, Object> requestBody = Map.of(
@@ -61,14 +61,15 @@ public class ClovaTextGenerator implements TextGenerator {
         return extractContent(response);
     }
 
-    private String extractContent(Map response) {
+    private GenAiResponse extractContent(Map response) {
         if (response != null && response.get("result") instanceof Map<?, ?> result) {
             if (result.get("message") instanceof Map<?, ?> message) {
-                Object thinkContent = message.get("thinkContent");
-                if (thinkContent != null) {
-                    log.info("Clova Think Content: {}", thinkContent);
+                String thinkingContent = (String) message.get("thinkingContent");
+                if (thinkingContent != null) {
+                    log.info("Clova Thinking Content: {}", thinkingContent);
                 }
-                return (String) message.get("content");
+                String content = (String) message.get("content");
+                return new GenAiResponse(content, thinkingContent);
             }
         }
         throw new RuntimeException("Failed to generate text from Clova: " + response);
