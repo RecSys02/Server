@@ -59,6 +59,20 @@ public class PlanController {
         return ResponseEntity.ok(planService.getPopularPlans(from, to, email));
     }
 
+    @GetMapping("/popular/fast")
+    @Operation(
+            summary = "인기 Plan 조회 (FAST: Redis ZSET + Postgres array_position)",
+            description = "Kafka로 반영된 Redis ZSET에서 상위 plan_id를 가져와, DB에서 ANY(ARRAY)로 조회하고 array_position으로 Redis 순서를 유지해 반환합니다."
+    )
+    public ResponseEntity<List<PlanResponseDto>> getPopularPlansFast(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        String email = (userDetails != null) ? userDetails.getUsername() : null;
+        return ResponseEntity.ok(planService.getPopularPlansFromRedis(from, to, email));
+    }
+
     @GetMapping("/{planId}")
     @Operation(summary = "Plan 상세 조회", description = "특정 Plan의 상세 정보를 조회합니다.")
     public ResponseEntity<PlanResponseDto> getPlan(
