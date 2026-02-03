@@ -7,6 +7,7 @@ import java.util.List;
 public record ChatbotStreamRequestDto(
         String query,
         List<ChatMessageDto> messages,
+        Object context,
         List<String> preferredThemes,
         List<String> preferredMoods,
         List<String> preferredRestaurantTypes,
