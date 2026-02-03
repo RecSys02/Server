@@ -2,6 +2,7 @@ package com.tourai.develop.controller;
 
 import com.tourai.develop.domain.enumType.Category;
 import com.tourai.develop.domain.enumType.Province;
+import com.tourai.develop.dto.SelectedPlaceDto;
 import com.tourai.develop.dto.response.PlaceResponseDto;
 import com.tourai.develop.service.PlaceService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,8 +31,8 @@ public class PlaceController {
     }
 
     @PostMapping("/bulk")
-    @Operation(summary = "Place 일괄 조회", description = "장소 ID 리스트를 받아 해당하는 장소들의 상세 정보를 일괄 조회합니다.")
-    public ResponseEntity<List<PlaceResponseDto>> getPlacesBulk(@RequestBody List<Long> placeIds) {
-        return ResponseEntity.ok(placeService.getPlacesByIds(placeIds));
+    @Operation(summary = "Place 일괄 조회", description = "장소 정보(ID, Category, Province) 리스트를 받아 해당하는 장소들의 상세 정보를 일괄 조회합니다.")
+    public ResponseEntity<List<PlaceResponseDto>> getPlacesBulk(@RequestBody List<SelectedPlaceDto> selectedPlaces) {
+        return ResponseEntity.ok(placeService.getPlacesBulk(selectedPlaces));
     }
 }

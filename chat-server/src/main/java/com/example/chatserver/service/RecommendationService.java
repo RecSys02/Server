@@ -71,18 +71,18 @@ public class RecommendationService {
             return Mono.just(new RecommendationResponseDto(Collections.emptyList(), Collections.emptyList(), Collections.emptyList()));
         }
 
-        List<Long> allPlaceIds = aiResponse.recommendations().stream()
+        List<SelectedPlaceDto> selectedPlaces = aiResponse.recommendations().stream()
                 .filter(r -> r.items() != null)
                 .flatMap(r -> r.items().stream())
-                .map(AiRecommendationResponse.RecommendedItem::placeId)
+                .map(item -> new SelectedPlaceDto(item.placeId(), item.category(), item.province()))
                 .distinct()
                 .toList();
 
-        if (allPlaceIds.isEmpty()) {
+        if (selectedPlaces.isEmpty()) {
             return Mono.just(new RecommendationResponseDto(Collections.emptyList(), Collections.emptyList(), Collections.emptyList()));
         }
 
-        return coreClient.getPlacesBulk(allPlaceIds)
+        return coreClient.getPlacesBulk(selectedPlaces)
                 .map(places -> {
                     Map<Long, PlaceResponseDto> placeMap = places.stream()
                             .collect(Collectors.toMap(PlaceResponseDto::placeId, p -> p, (p1, p2) -> p1));
