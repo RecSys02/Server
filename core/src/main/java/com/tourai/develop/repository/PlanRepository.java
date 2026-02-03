@@ -19,13 +19,15 @@ public interface PlanRepository extends JpaRepository<Plan, Long> {
 
     @Query(
             value = """
-                    SELECT *
-                    FROM plan
-                    WHERE id = ANY(:ids)
-                      AND is_private = false
-                      AND created_at BETWEEN :from AND :to
-                    ORDER BY array_position(:ids, id)
-                    """,
+                SELECT
+                    p.*,
+                    (SELECT COUNT(*) FROM plan_like pl WHERE pl.plan_id = p.id) AS "likeCount"
+                FROM plan p
+                WHERE p.id = ANY(:ids)
+                  AND p.is_private = false
+                  AND p.created_at BETWEEN :from AND :to
+                ORDER BY array_position(:ids, p.id)
+                """,
             nativeQuery = true
     )
     List<Plan> findPopularPlansByIdsOrdered(
@@ -33,5 +35,6 @@ public interface PlanRepository extends JpaRepository<Plan, Long> {
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to
     );
+
 
 }
