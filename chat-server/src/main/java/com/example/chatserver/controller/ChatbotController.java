@@ -25,6 +25,12 @@ public class ChatbotController {
         return chatbotService.getChatStream(request);
     }
 
+    @PostMapping(value = "/stream/fresh", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<ServerSentEvent<String>> chatbotStreamFresh(@RequestBody ChatbotRequest request) {
+        // 항상 최신 유저 컨텍스트를 가져와서 스트림 처리
+        return chatbotService.getChatStreamWithFreshContext(request);
+    }
+
     @GetMapping("/history")
     public Mono<List<ChatMessageDto>> getChatHistory() {
         return chatbotService.getChatHistory();
