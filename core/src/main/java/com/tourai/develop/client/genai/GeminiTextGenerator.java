@@ -18,7 +18,7 @@ public class GeminiTextGenerator implements TextGenerator {
     }
 
     @Override
-    public String generate(String model, String instruction, String textInput) {
+    public GenAiResponse generate(String model, String instruction, String textInput) {
         GenerateContentConfig config =
                 GenerateContentConfig.builder()
                         .systemInstruction(Content.fromParts(Part.fromText(instruction)))
@@ -30,7 +30,7 @@ public class GeminiTextGenerator implements TextGenerator {
                 config
         );
 
-        return response.text();
+        return new GenAiResponse(response.text(), null);
     }
 
 }
