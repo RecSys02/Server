@@ -3,7 +3,9 @@ package com.example.chatserver.service;
 import com.example.chatserver.dto.ChatMessageDto;
 import com.example.chatserver.dto.UserContextDto;
 import com.example.chatserver.dto.request.ChatbotRequest;
+import com.example.chatserver.repository.ChatContextRedisRepository;
 import com.example.chatserver.repository.ChatHistoryRedisRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +35,11 @@ class ChatbotServiceTest {
     @Mock
     private ChatHistoryRedisRepository chatHistoryRedisRepository;
     @Mock
+    private ChatContextRedisRepository chatContextRedisRepository;
+    @Mock
     private AuthService authService;
+    @Mock
+    private ObjectMapper objectMapper;
     @Mock
     private WebClient.RequestBodyUriSpec requestBodyUriSpec;
     @Mock
@@ -47,7 +53,14 @@ class ChatbotServiceTest {
 
     @BeforeEach
     void setUp() {
-        chatbotService = new ChatbotService(chatbotWebClient, userContextService, chatHistoryRedisRepository, authService);
+        chatbotService = new ChatbotService(
+                chatbotWebClient,
+                userContextService,
+                chatHistoryRedisRepository,
+                chatContextRedisRepository,
+                authService,
+                objectMapper
+        );
     }
 
     @Test
@@ -64,6 +77,7 @@ class ChatbotServiceTest {
         when(authService.currentUserId()).thenReturn(Mono.just(userId));
         when(userContextService.getOrFetch(userId)).thenReturn(Mono.just(userContext));
         when(chatHistoryRedisRepository.getChatHistory(userId)).thenReturn(Mono.just(history));
+        when(chatContextRedisRepository.getChatContext(userId)).thenReturn(Mono.empty());
         when(chatHistoryRedisRepository.saveChatHistory(anyLong(), any())).thenReturn(Mono.empty());
 
         // WebClient Mocking
