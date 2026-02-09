@@ -66,6 +66,7 @@ gateway:
       # 2) GET 공개 API (Core에서 permitAll 한 것들)
       - /core/api/plans
       - /core/api/plans/popular
+      - /core/api/plans/popular/fast
       - /core/api/plans/*
       - /core/api/plans/user/*
       - /core/api/places/*

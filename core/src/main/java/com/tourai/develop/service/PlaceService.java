@@ -4,6 +4,7 @@ import com.tourai.develop.domain.entity.Place;
 import com.tourai.develop.domain.enumType.Category;
 import com.tourai.develop.domain.enumType.Province;
 import com.tourai.develop.dto.PlaceInfo;
+import com.tourai.develop.dto.SelectedPlaceDto;
 import com.tourai.develop.repository.PlaceRepository;
 import com.tourai.develop.dto.response.PlaceResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,29 @@ public class PlaceService {
         Place place = placeRepository.findByPlaceIdAndCategoryAndProvince(placeId, category, province)
                 .orElseThrow(() -> new IllegalArgumentException("Place not found with id: " + placeId + ", category: " + category + ", province: " + province));
         return PlaceResponseDto.from(place);
+    }
+
+    public List<PlaceResponseDto> getPlacesBulk(List<SelectedPlaceDto> selectedPlaces) {
+        if (selectedPlaces == null || selectedPlaces.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> placeIds = selectedPlaces.stream()
+                .map(SelectedPlaceDto::placeId)
+                .toList();
+
+        // 1. ID로 1차 조회 (Bulk)
+        List<Place> candidates = placeRepository.findAllByPlaceIdIn(placeIds);
+
+        // 2. Category, Province 검증
+        return candidates.stream()
+                .filter(place -> selectedPlaces.stream().anyMatch(req ->
+                        req.placeId().equals(place.getPlaceId()) &&
+                        req.category() == place.getCategory() &&
+                        req.province() == place.getProvince()
+                ))
+                .map(PlaceResponseDto::from)
+                .toList();
     }
 
     /**

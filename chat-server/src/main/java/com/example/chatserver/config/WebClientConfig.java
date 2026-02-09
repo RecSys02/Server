@@ -16,7 +16,7 @@ public class WebClientConfig {
 
     // AI 서버 호출용
     @Bean
-    public WebClient chatbotWebClient(@Value("${ai.base-url}") String baseUrl) {
+    public WebClient fastApiWebClient(@Value("${ai.base-url}") String baseUrl) {
         return WebClient.builder().baseUrl(baseUrl).build();
     }
 }
