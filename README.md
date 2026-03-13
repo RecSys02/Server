@@ -1,166 +1,155 @@
-# 어슬렁 (Eoseulleong) — AI 여행 추천 웹 서비스
-
-> AI 기반 여행 추천 및 일정 생성 플랫폼
-> 사용자의 취향과 입력 정보를 바탕으로 여행지를 추천하고, 개인 맞춤형 여행 계획을 생성하는 웹 서비스입니다.
-
----
-
-## 🚀 Overview
+# 어슬렁
 ![Image](https://github.com/user-attachments/assets/d89aadd7-2dc0-4a46-837a-514413b8e69b)
-![Image](https://github.com/user-attachments/assets/bf56acf9-f3a8-45b5-b322-709ea5d908c1)
-![Image](https://github.com/user-attachments/assets/9b6a4b47-d4b3-47ce-a526-92f65355c405)
-![Image](https://github.com/user-attachments/assets/6cfbfe81-d6bc-43f2-92a3-b43177a480f3)
-<img width="764" height="607" alt="Image" src="https://github.com/user-attachments/assets/2d83f126-2312-4a5f-937a-b06e3ed3f7cd" />
+
+
+---
+
+## Overview
+
+어슬렁은 AI 추천 시스템과 대화형 인터페이스를 결합해 사용자가 쉽고 빠르게 여행 계획을 세울 수 있도록 돕는 서비스입니다.  
+사용자는 지역, 기간, 취향 등의 정보를 입력하고, 추천 결과를 바탕으로 여행지를 탐색하거나 일정을 생성할 수 있습니다.  
+백엔드는 추천 요청 처리, 사용자 및 플랜 관리, 인증/인가, 인기 랭킹 반영, AI 서버 연동을 담당합니다.
+
+---
+
+## Core Features
+
+- AI 기반 여행지 추천
+- 개인 맞춤 여행 일정 생성
+- 자연어 기반 챗봇 인터페이스
+- 사용자 계정 및 플랜 관리
+- 좋아요 기반 인기 플랜 랭킹 제공
+
+---
+
+## Documentation
+
+- Prototype  
+  <img width="11154" height="6522" alt="Image" src="https://github.com/user-attachments/assets/ef17d775-ba8c-4249-922d-9f10d4ef96bf" />
+
+- API Specification  
+  [API 명세서 바로가기](https://www.notion.so/API-2f4136f77e8a80559f62f50d1aacc770?source=copy_link)
+
+---
+
+## Tech Stack
+
+### Backend
+- Java 17
+- Spring Boot
+- Spring MVC
+- Spring WebFlux
+- Spring Security
+- JPA Hibernate
+
+### Database / Infra
+- PostgreSQL
+- Redis
+- Apache Kafka
+- Docker
+
+### AI / Communication
+- FastAPI
+- REST API
+- Kafka
+
+---
+
+## ERD
 <img width="1482" height="1112" alt="Image" src="https://github.com/user-attachments/assets/33e90f9e-0074-4ea2-abd7-e66ccb7fa4b6" />
+
+
+---
+
+## Architecture
 <img width="1069" height="789" alt="Image" src="https://github.com/user-attachments/assets/09d76720-c54a-444b-838f-78799c379be8" />
-어슬렁은 **AI 추천 시스템과 대화형 인터페이스**를 결합하여
-사용자가 쉽고 빠르게 여행 계획을 세울 수 있도록 돕는 서비스입니다.
 
 
+### Components
 
-API명세서(https://www.notion.so/API-2f4136f77e8a80559f62f50d1aacc770?source=copy_link)
+- Core Server  
+  사용자, 플랜, 좋아요 등 핵심 비즈니스 로직과 DB 처리 담당
 
-### 핵심 기능
+- Chat Server  
+  추천 요청 처리, AI 서버 연동, 응답 조합 담당
 
-* ✨ AI 기반 여행지 추천
-* 🗺️ 개인 맞춤 여행 일정 생성
-* 🤖 자연어 기반 챗봇 인터페이스
-* 👤 사용자 계정 및 플랜 관리
+- AI Server  
+  사용자 입력을 바탕으로 추천 결과와 챗봇 응답 생성
 
----
+- Redis  
+  인기 플랜 랭킹, 사용자 컨텍스트 등 빠른 조회가 필요한 데이터를 관리
 
-## 🧩 Tech Stack
-
-### Frontend
-
-* **React + TypeScript**
-* **TanStack Router**
-* **axios + ts-rest**
-* **zod**
-* **TanStack Query (React Query)**
-* **Tailwind CSS**
-* **shadcn/ui**
-* **Vite**
-
-### Architecture
-
-* REST API 기반 클라이언트–서버 구조
-* 상태 관리: React Query 중심의 서버 상태 관리
-* 컴포넌트 기반 UI 아키텍처
-* 재사용 가능한 디자인 시스템 구축
+- Kafka  
+  좋아요, 사용자 컨텍스트 변경 등 주요 이벤트를 비동기로 전달하고 후속 작업을 분리
 
 ---
 
-## 🏗️ Frontend Architecture
+## Backend Engineering Highlights
 
-src/
-├── components/     # 공통 UI 컴포넌트
-├── pages/          # 라우트 기반 페이지
-├── hooks/          # 커스텀 훅
-├── stores/         # 클라이언트 상태 관리
-├── apis/           # API 클라이언트
-└── types/          # 타입 정의
+### 1. Non-Blocking 기반 추천 처리 구조 분리
+- 기존에는 Core 서버가 AI 호출과 추천 상세 조회를 함께 처리
+- 외부 응답 대기 동안 요청 스레드 점유가 길어져 동시 요청 증가 시 지연이 빠르게 누적
+- 추천 처리 경로를 Spring WebFlux 기반 Chat Server로 분리
+- 응답 조합 과정을 비동기 파이프라인으로 재구성
+- 결과
+  - AI 호출 대기 구간에서 스레드 점유를 줄여 동시 요청 처리에 유리한 구조로 개선
+  - 추천 API 처리 경로를 Core 서버와 분리해 역할을 명확히 나눔
 
-주요 설계 목표:
+### 2. Bulk 조회 기반 추천 상세 조회 개선
+- 기존에는 추천 결과로 반환된 장소 ID를 개별 조회
+- 추천 개수에 비례해 DB 조회 수가 증가하는 구조
+- 추천 ID 목록을 한 번에 조회하는 Bulk 방식으로 변경
+- AI가 반환한 추천 순서를 유지할 수 있도록 응답 조합 로직 구성
+- 결과
+  - 요청 1건당 DB 조회 횟수를 줄여 조회 비용 절감
+  - 추천 개수 증가에 따른 응답 지연과 DB 부하를 완화
 
-* 확장 가능한 컴포넌트 구조
-* 명확한 책임 분리
-* 타입 안정성 보장
-* 유지보수 친화적인 코드 구조
+### 3. Redis ZSET 기반 인기 플랜 랭킹 구현
+- 인기 플랜 조회 시마다 DB에서 정렬과 집계를 수행하던 구조
+- Redis Sorted Set에 점수를 반영해 랭킹을 정렬된 상태로 유지
+- 조회 시 상위 planId를 Redis에서 조회하고 필요한 상세 정보만 DB에서 batch 조회
+- 결과
+  - 랭킹 조회 경로를 단순화해 Top-N 조회 성능 개선
+  - 반복적인 DB 정렬 및 집계 부담을 줄여 조회 부하 완화
 
----
+### 4. Kafka 기반 비동기 후속 처리 분리
+- 좋아요, 사용자 컨텍스트 변경 등의 후속 작업이 요청 처리 경로와 강하게 결합되어 있었음
+- Kafka 이벤트 기반 구조를 적용해 후속 작업을 비동기로 분리
+- 랭킹 반영, 사용자 컨텍스트 갱신 등을 별도 처리 흐름으로 구성
+- 결과
+  - 요청-응답 경로를 단순화해 응답 지연을 줄이기 쉬운 구조로 개선
+  - 후속 처리 로직의 결합도를 낮춰 확장성과 유지보수성 향상
 
-## ⚙️ Frontend Engineering Highlights (Architecture & Implementation)
+### 5. 트랜잭션 커밋 이후 이벤트 발행으로 정합성 보장
+- DB 변경이 롤백됐는데 이벤트가 먼저 발행되면 데이터 불일치 가능성 발생
+- 트랜잭션이 실제로 커밋된 이후에만 Kafka 이벤트가 발행되도록 설계
+- 비동기 처리 환경에서도 원본 데이터와 파생 데이터 간 정합성을 유지하도록 구성
+- 결과
+  - DB 상태와 이벤트 발행 간 불일치 가능성을 줄임
+  - 비동기 후속 처리에서도 정합성을 더 안정적으로 보장
 
-### 1) 계약 기반 API 설계 (ts-rest + Zod)
+### 6. Spring Security와 JWT 기반 인증/인가 구현
+- Spring Security 기반 인증/인가 구조 구성
+- JWT Access Token과 Refresh Token 방식으로 로그인 흐름 구현
+- Access Token은 응답 바디, Refresh Token은 쿠키로 분리
+- 인증 필터, 예외 처리, 토큰 재발급 로직 분리
+- 보호가 필요한 API를 인증 기반으로 일관되게 제어
+- 결과
+  - 로그인, 인증, 재발급 흐름을 명확히 분리해 보안 처리 일관성 확보
+  - 인증이 필요한 API를 안정적으로 보호할 수 있는 구조 마련
 
-프론트–서버 간 계약(Contract)을 **ts-rest**로 정의하고, 요청/응답 스키마는 **Zod**로 검증하여
-**타입 안정성 + 런타임 안정성**을 동시에 확보했습니다.
-
-- API contract를 단일 소스로 관리 (endpoint, params, body, response schema)
-- DTO 변경 시 컴파일 타임에 영향 범위를 즉시 확인 가능
-- Zod 스키마로 런타임 데이터 shape 방어 (예상치 못한 응답/결측값 대응)
-
-> 결과: "API 문서/타입/검증"이 분리되지 않고 한 흐름으로 유지되며, 리팩토링 비용이 크게 감소합니다.
-
----
-
-### 2) Axios 인스턴스 계층화 + 큐 기반 요청 제어
-
-네트워크 계층을 axios instance로 분리하고, 인증/재발급 시나리오에서 흔히 발생하는
-**동시 요청 폭주 / 토큰 재발급 중복 호출** 문제를 **큐(Queue) 기반**으로 제어했습니다.
-
-- 역할별 axios instance 분리 (일반 API / 인증 전용 / 필요 시 SSE 등)
-- interceptor에서 401/만료 대응 → refresh/reissue 단일화
-- 재발급 진행 중 들어오는 요청은 큐에 적재 후, 재발급 성공 시 순차 재시도
-- 재발급 실패 시 큐 일괄 실패 처리 및 사용자 상태 초기화
-
-> 결과: 인증 경계에서 "한 번만 재발급하고 나머지는 대기"하는 안정적인 네트워크 흐름을 보장합니다.
-
----
-
-### 3) 서버 상태 관리 전략 (TanStack Query)
-
-서버 상태는 TanStack Query(React Query)로 일원화하여
-캐싱/무효화/재시도/로딩 표현을 예측 가능하게 구성했습니다.
-
-- 도메인 단위 Query Key 네이밍 전략 (`PLAN_QK`, `QK.me()` 등)
-- mutation 성공 시 invalidate/refetch 범위를 명확히 분리
-- keepPreviousData 등으로 리스트 UX 안정화
-- 에러 시 공통 토스트/리다이렉트 정책 적용 (사용자 경험 일관성)
-
-> 결과: 화면별로 흩어지는 fetch 로직을 줄이고, "데이터의 생명주기"가 코드로 드러나게 됩니다.
 
 ---
 
-### 4) 단계 기반 UX 상태 유지 (sessionStorage + Context Provider)
 
-추천 플로우(입력 → 추천 결과 → 선택 → 일정 생성)는 페이지 전환이 잦아
-사용자 입력/선택 상태가 쉽게 유실됩니다. 이를 해결하기 위해:
 
-- 단계별 입력/선택 상태를 **sessionStorage 기반 store**로 영속화  
-  (새로고침/뒤로가기/재진입에도 UX 유지)
-- 페이지 레이아웃 단위로 **Context Provider**를 두어 단계 흐름에서 필요한 상태/액션을 주입
-- "UI 단계"와 "저장된 상태"를 분리해, 각 화면은 자신의 책임(표현/검증/전환)만 담당
 
-예시(개념):
-- `ModelInputStore` : 지역/기간/예산/취향 등 입력 상태 보존
-- `ModelHistoryStore` : 최근 추천/선택 이력
-- Layout Provider : 현재 단계에서 필요한 핸들러/전환 로직 제공
 
-> 결과: 복잡한 다단계 플로우에서도 상태 유실 없이 자연스러운 전환과 복구가 가능합니다.
+## Project Structure
 
----
-
-### 5) 라우팅 구조 설계 (TanStack Router)
-
-TanStack Router의 중첩 라우팅을 활용해,
-단계 플로우와 공통 레이아웃을 분리했습니다.
-
-- Layout(상위)에서 공통 컨텍스트/상태 주입
-- Page(하위)는 화면 단위 책임 유지
-- 라우트 params 기반으로 "플랜 상세/모델 진행" 등 화면을 명확히 구분
-
-> 결과: 화면이 100개 이상으로 확장되더라도 라우트/레이아웃/상태 책임이 흐트러지지 않습니다.
-
----
-
-### 6) UI 시스템화 (Tailwind + shadcn/ui + 공통 컴포넌트)
-
-디자인 시스템 토큰과 공통 컴포넌트를 기반으로 UI 일관성을 유지했습니다.
-
-- `Column/Row` 같은 레이아웃 컴포넌트로 화면 구조 표준화
-- 공통 Button/Text/Badge/ImageBox 등 재사용 컴포넌트 구축
-- shadcn/ui 기반으로 접근성/인터랙션 품질 확보
-- 로딩/빈 상태/토스트 등 "상태 UI" 패턴 통일
-
-> 결과: 새로운 화면 추가 시 "조립" 중심으로 개발 가능하며, UI 품질이 균일해집니다.
-
----
-
-## 📌 Future Improvements
-
-* 추천 알고리즘 고도화
-* 사용자 경험 개선
-* 성능 최적화
-* 모바일 UX 강화
+```text
+backend/
+├── api-gateway/       # 외부 클라이언트 요청 진입점, 라우팅 및 공통 인증 처리
+├── core/              # 사용자, 플랜, 좋아요 등 핵심 비즈니스 로직과 DB 처리
+├── chat-server/       # 추천 요청 처리, AI 서버 통신, 응답 조합
+└── docker-compose.yml # Redis, Kafka, PostgreSQL 등 인프라 실행 설정
