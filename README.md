@@ -6,11 +6,17 @@
 ---
 
 ## 🚀 Overview
-
+![Image](https://github.com/user-attachments/assets/d89aadd7-2dc0-4a46-837a-514413b8e69b)
+![Image](https://github.com/user-attachments/assets/bf56acf9-f3a8-45b5-b322-709ea5d908c1)
+![Image](https://github.com/user-attachments/assets/9b6a4b47-d4b3-47ce-a526-92f65355c405)
+![Image](https://github.com/user-attachments/assets/6cfbfe81-d6bc-43f2-92a3-b43177a480f3)
+<img width="764" height="607" alt="Image" src="https://github.com/user-attachments/assets/2d83f126-2312-4a5f-937a-b06e3ed3f7cd" />
+<img width="1482" height="1112" alt="Image" src="https://github.com/user-attachments/assets/33e90f9e-0074-4ea2-abd7-e66ccb7fa4b6" />
+<img width="1069" height="789" alt="Image" src="https://github.com/user-attachments/assets/09d76720-c54a-444b-838f-78799c379be8" />
 어슬렁은 **AI 추천 시스템과 대화형 인터페이스**를 결합하여
 사용자가 쉽고 빠르게 여행 계획을 세울 수 있도록 돕는 서비스입니다.
 
-화면설계서(https://www.notion.so/2f9136f77e8a803e892bf59cd0dc22aa?v=2f9136f77e8a80d38e9e000ca883d22c&source=copy_link)
+
 
 API명세서(https://www.notion.so/API-2f4136f77e8a80559f62f50d1aacc770?source=copy_link)
 
